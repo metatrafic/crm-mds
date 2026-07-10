@@ -549,7 +549,7 @@ function loadLocal(){try{const d=JSON.parse(localStorage.getItem(LS)); if(d&&d.c
 function normalizeState(d){
   d.settings=d.settings||{commercial:'',inactiveDays:90};
   d.companies=(d.companies||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[],orderEmail:c.orderEmail||''}));
-  d.clients=(d.clients||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[],population:c.population||''}));
+  d.clients=(d.clients||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[],population:c.population||c.city||'',province:c.province||''}));
   d.activities=(d.activities||[]).map(a=>({...a,assignedUserId:a.assignedUserId||''}));
   d.commissions=(Array.isArray(d.commissions)?d.commissions:[]).map(c=>({
     ...c,
@@ -740,30 +740,54 @@ function renderClientes(){
   const q=clientSearchTerm;
   const companyFilter=$('#clientCompanyFilter')?.value||'all';
   const favoriteFilter=$('#clientFavoriteFilter')?.value||'all';
+  const provinceFilter=$('#clientProvinceFilter')?.value||'all';
   const populationFilter=$('#clientPopulationFilter')?.value||'all';
 
   let arr=visibleClients().filter(c=>matchesClient(c,q));
   if(companyFilter!=='all')arr=arr.filter(c=>c.companyId===companyFilter);
   if(favoriteFilter==='favorites')arr=arr.filter(c=>isFavoriteClient(c.id));
-  if(populationFilter!=='all')arr=arr.filter(c=>(c.population||'')===populationFilter);
+  if(provinceFilter!=='all')arr=arr.filter(c=>norm(c.province||'')===norm(provinceFilter));
+  if(populationFilter!=='all')arr=arr.filter(c=>norm(c.population||'')===norm(populationFilter));
 
   arr.sort((a,b)=>{
     const favDiff=Number(isFavoriteClient(b.id))-Number(isFavoriteClient(a.id));
-    return favDiff||company(a.companyId).name.localeCompare(company(b.companyId).name)||String(a.fiscalName||a.commercialName||'').localeCompare(String(b.fiscalName||b.commercialName||''));
+    return favDiff||
+      company(a.companyId).name.localeCompare(company(b.companyId).name)||
+      String(a.fiscalName||a.commercialName||'').localeCompare(String(b.fiscalName||b.commercialName||''));
   });
 
   const filtersOpen=!!$('#clientFilters')&&!$('#clientFilters').classList.contains('hidden');
   const companies=visibleCompanies().slice().sort((a,b)=>a.name.localeCompare(b.name));
-  const populations=[...new Set(visibleClients().map(c=>(c.population||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+
+  const provinceMap=new Map();
+  visibleClients().forEach(c=>{
+    const value=String(c.province||'').trim();
+    if(value&&!provinceMap.has(norm(value)))provinceMap.set(norm(value),value);
+  });
+  const provinces=[...provinceMap.values()].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+
+  const populationMap=new Map();
+  visibleClients()
+    .filter(c=>provinceFilter==='all'||norm(c.province||'')===norm(provinceFilter))
+    .forEach(c=>{
+      const value=String(c.population||'').trim();
+      if(value&&!populationMap.has(norm(value)))populationMap.set(norm(value),value);
+    });
+  const populations=[...populationMap.values()].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+
+  const validPopulation=populationFilter==='all'||populations.some(p=>norm(p)===norm(populationFilter))
+    ?populationFilter
+    :'all';
 
   $('#view-clientes').innerHTML=`<div class="row" style="align-items:center;margin-bottom:12px"><div class="section-title" style="margin:0">Clientes</div>${hasPermission('addClients')?`<button class="btn primary" style="padding:9px 11px" onclick="openNewClient()">${ICONS.plus}<span>Nuevo</span></button>`:''}</div>
   <div class="search-bar">${ICONS.search}<input id="clientSearch" placeholder="Buscar por nombre, CIF, contacto, teléfono..." value="${esc(q)}" autocomplete="off" inputmode="search" oninput="handleClientSearch(this)"></div>
-  <button class="filter-toggle" onclick="toggleBlock('clientFilters')">${ICONS.filter}<span>Filtros</span>${companyFilter!=='all'||favoriteFilter!=='all'||populationFilter!=='all'?`<span class="filter-active-dot"></span>`:''}</button>
+  <button class="filter-toggle" onclick="toggleBlock('clientFilters')">${ICONS.filter}<span>Filtros</span>${companyFilter!=='all'||favoriteFilter!=='all'||provinceFilter!=='all'||validPopulation!=='all'?`<span class="filter-active-dot"></span>`:''}</button>
   <div id="clientFilters" class="${filtersOpen?'':'hidden'}">
     <div class="client-filter-grid">
       <div class="field"><label>Empresa</label><select id="clientCompanyFilter" onchange="renderClientes()"><option value="all">Todas las empresas</option>${companies.map(c=>`<option value="${c.id}" ${companyFilter===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
       <div class="field"><label>Favoritos</label><select id="clientFavoriteFilter" onchange="renderClientes()"><option value="all" ${favoriteFilter==='all'?'selected':''}>Todos</option><option value="favorites" ${favoriteFilter==='favorites'?'selected':''}>Solo favoritos</option></select></div>
-      <div class="field"><label>Población</label><select id="clientPopulationFilter" onchange="renderClientes()"><option value="all">Todas las poblaciones</option>${populations.map(p=>`<option value="${esc(p)}" ${populationFilter===p?'selected':''}>${esc(p)}</option>`).join('')}</select></div>
+      <div class="field"><label>Provincia</label><select id="clientProvinceFilter" onchange="renderClientes()"><option value="all">Todas las provincias</option>${provinces.map(p=>`<option value="${esc(p)}" ${provinceFilter===p?'selected':''}>${esc(p)}</option>`).join('')}</select></div>
+      <div class="field"><label>Población</label><select id="clientPopulationFilter" onchange="renderClientes()"><option value="all">Todas las poblaciones</option>${populations.map(p=>`<option value="${esc(p)}" ${validPopulation===p?'selected':''}>${esc(p)}</option>`).join('')}</select></div>
     </div>
   </div>
   <div class="list-count">${arr.length} ${arr.length===1?'cliente':'clientes'}</div>
@@ -795,7 +819,7 @@ function clientCard(c){
       <div style="min-width:0;flex:1">
         <div class="card-eyebrow"><span class="dot" style="background:${co.color}"></span>${esc(co.name)}${c.nif?' · '+esc(c.nif):''}</div>
         <div class="card-title">${esc(c.fiscalName||c.commercialName||'Cliente sin nombre')}</div>
-        <div class="card-sub">${c.population?esc(c.population)+' · ':''}${lc?'Último contacto '+fmtDate(lc):'Sin contacto todavía'}</div>
+        <div class="card-sub">${[c.population,c.province].filter(Boolean).map(esc).join(' · ')}${c.population||c.province?' · ':''}${lc?'Último contacto '+fmtDate(lc):'Sin contacto todavía'}</div>
         ${fav?`<div class="favorite-chip">${ICONS.star}<span>Favorito</span></div>`:''}
         ${isAdmin()?`<div class="client-admin-meta"><span class="assignment-chip ${allAssigned.length?'':'unassigned'}">${ICONS.users}<span>${esc(assignedLabel)}</span></span></div>`:''}
       </div>
@@ -818,6 +842,22 @@ function renderCalendar(){
   $('#view-calendario').innerHTML=`<div class="calendar-head"><button class="icon-btn" onclick="calDate.setMonth(calDate.getMonth()-1);renderCalendar()">${ICONS.chevronLeft}</button><div class="calendar-title">${calDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'})}</div><button class="icon-btn" onclick="calDate.setMonth(calDate.getMonth()+1);renderCalendar()">${ICONS.chevron}</button></div><div class="cal"><div class="cal-week">${['L','M','X','J','V','S','D'].map(x=>`<div>${x}</div>`).join('')}</div><div class="cal-grid">${cells.join('')}</div></div>`;
 }
 
+
+function repairClientPopulations(){
+  let repaired=0;
+  state.clients.forEach(c=>{
+    if(!String(c.population||'').trim()&&String(c.city||'').trim()){
+      c.population=String(c.city).trim();
+      repaired++;
+    }
+    if(!String(c.province||'').trim()&&String(c.state||'').trim()){
+      c.province=String(c.state).trim();
+      repaired++;
+    }
+  });
+  save();render();toast(repaired?`${repaired} población(es) reparada(s).`:'No había poblaciones pendientes de reparar.');
+}
+
 /* ---------- Ajustes ---------- */
 function renderAjustes(){
   const opts=visibleCompanies().map(c=>`<option value="${c.id}" ${selectedCompany===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
@@ -829,6 +869,10 @@ function renderAjustes(){
     <button class="btn full" onclick="openCommercialStats()">${ICONS.history}<span>Productividad del equipo</span></button>
     <button class="btn full" onclick="openCommissionsAdmin()">${ICONS.building}<span>Comisiones</span></button>
   </div>`:''}
+  <div class="settings-group"><div class="section-title">Datos de clientes</div>
+    <button class="btn full" onclick="repairClientPopulations()">${ICONS.check}<span>Reparar poblaciones importadas</span></button>
+    <div class="small">Copia automáticamente el antiguo campo “ciudad” al nuevo campo “población” cuando sea necesario.</div>
+  </div>
   <div class="settings-group"><div class="section-title">Copias de seguridad</div>
     <button class="btn full primary" onclick="exportJSON()">${ICONS.download}<span>Descargar copia completa (JSON)</span></button>
     <label class="btn full">${ICONS.upload}<span>Importar copia (JSON)</span><input type="file" accept=".json,application/json" class="hidden" onchange="importJSON(this.files[0])"></label>
@@ -867,6 +911,7 @@ function openClient(id){
       <div class="info-row"><span>Teléfono</span><b>${esc([c.phone,c.mobile].filter(Boolean).join(' · ')||'—')}</b></div>
       <div class="info-row"><span>Email</span><b>${esc(c.email||'—')}</b></div>
       <div class="info-row"><span>Dirección</span><b>${esc(c.address||'—')}</b></div>
+      <div class="info-row"><span>Provincia</span><b>${esc(c.province||'—')}</b></div>
       <div class="info-row"><span>Población</span><b>${esc(c.population||'—')}</b></div>
       <div class="info-row"><span>Favorito</span><b>${isFavoriteClient(c.id)?'Sí':'No'}</b></div>
       <div class="info-row"><span>Último contacto</span><b>${lc?fmtDate(lc):'Sin contacto'}</b></div>
@@ -966,7 +1011,7 @@ function openNewClient(){
     <div class="grid2" style="margin-bottom:0"><div class="field"><label>Teléfono</label><input id="ncPhone" inputmode="tel"></div><div class="field"><label>Móvil</label><input id="ncMobile" inputmode="tel"></div></div>
     <div class="field"><label>Email</label><input id="ncEmail" type="email"></div>
     <div class="field"><label>Dirección</label><input id="ncAddress"></div>
-    <div class="field"><label>Población</label><input id="ncPopulation"></div>
+    <div class="grid2" style="margin-bottom:0"><div class="field"><label>Provincia</label><input id="ncProvince"></div><div class="field"><label>Población</label><input id="ncPopulation"></div></div>
     <div class="field"><label>Notas</label><textarea id="ncNotes"></textarea></div>
     <button class="btn full primary" onclick="saveNewClient()">${ICONS.check}<span>Guardar cliente</span></button>
   `);
@@ -982,7 +1027,7 @@ function saveNewClient(){
     id:uid(),companyId,fiscalName,commercialName,nif:$('#ncNif').value.trim(),
     contact:$('#ncContact').value.trim(),phone:$('#ncPhone').value.trim(),
     mobile:$('#ncMobile').value.trim(),email:$('#ncEmail').value.trim(),
-    address:$('#ncAddress').value.trim(),population:$('#ncPopulation').value.trim(),
+    address:$('#ncAddress').value.trim(),province:$('#ncProvince').value.trim(),population:$('#ncPopulation').value.trim(),
     notes:$('#ncNotes').value.trim(),alertMsg:'',assignedUserIds:isAdmin()?[]:[currentUser.id],
     createdAt:new Date().toISOString()
   };
@@ -1002,9 +1047,9 @@ async function deleteClient(id){
 function editClient(id){
   if(!hasPermission('editClients'))return toast('No tienes permiso para editar clientes.');
   const c=client(id);
-  openSheet('Editar cliente',c.fiscalName||'',`<div class="field"><label>Nombre fiscal</label><input id="ecFiscal" value="${esc(c.fiscalName||'')}"></div><div class="field"><label>Nombre comercial</label><input id="ecCom" value="${esc(c.commercialName||'')}"></div><div class="field"><label>Población</label><input id="ecPopulation" value="${esc(c.population||'')}"></div><div class="field"><label>Mensaje emergente</label><textarea id="ecAlert">${esc(c.alertMsg||'')}</textarea></div><div class="field"><label>Notas</label><textarea id="ecNotes">${esc(c.notes||'')}</textarea></div><button class="btn full primary" onclick="saveClientEdit('${id}')">${ICONS.check}<span>Guardar cliente</span></button>`);
+  openSheet('Editar cliente',c.fiscalName||'',`<div class="field"><label>Nombre fiscal</label><input id="ecFiscal" value="${esc(c.fiscalName||'')}"></div><div class="field"><label>Nombre comercial</label><input id="ecCom" value="${esc(c.commercialName||'')}"></div><div class="grid2" style="margin-bottom:0"><div class="field"><label>Provincia</label><input id="ecProvince" value="${esc(c.province||'')}"></div><div class="field"><label>Población</label><input id="ecPopulation" value="${esc(c.population||'')}"></div></div><div class="field"><label>Mensaje emergente</label><textarea id="ecAlert">${esc(c.alertMsg||'')}</textarea></div><div class="field"><label>Notas</label><textarea id="ecNotes">${esc(c.notes||'')}</textarea></div><button class="btn full primary" onclick="saveClientEdit('${id}')">${ICONS.check}<span>Guardar cliente</span></button>`);
 }
-function saveClientEdit(id){if(!hasPermission('editClients'))return toast('No tienes permiso para editar clientes.');const c=client(id); Object.assign(c,{fiscalName:$('#ecFiscal').value,commercialName:$('#ecCom').value,population:$('#ecPopulation').value.trim(),alertMsg:$('#ecAlert').value,notes:$('#ecNotes').value}); save(); closeSheet(); render(); toast('Cliente guardado.');}
+function saveClientEdit(id){if(!hasPermission('editClients'))return toast('No tienes permiso para editar clientes.');const c=client(id); Object.assign(c,{fiscalName:$('#ecFiscal').value,commercialName:$('#ecCom').value,province:$('#ecProvince').value.trim(),population:$('#ecPopulation').value.trim(),alertMsg:$('#ecAlert').value,notes:$('#ecNotes').value}); save(); closeSheet(); render(); toast('Cliente guardado.');}
 
 /* ---------- Actividad (visitas) ---------- */
 function openActivity(id=null, preClient=null){
@@ -1211,7 +1256,7 @@ async function deleteCompany(id){
 function parseCSV(text){text=text.replace(/^\uFEFF/,''); const sample=text.slice(0,2000); const sep=(sample.match(/;/g)||[]).length>(sample.match(/,/g)||[]).length?';':','; const rows=[]; let row=[],cur='',q=false; for(let i=0;i<text.length;i++){const ch=text[i],n=text[i+1]; if(ch==='"'){if(q&&n==='"'){cur+='"';i++}else q=!q} else if(ch===sep&&!q){row.push(cur);cur=''} else if((ch==='\n'||ch==='\r')&&!q){if(ch==='\r'&&n==='\n')i++; row.push(cur); if(row.some(x=>x.trim()))rows.push(row); row=[]; cur=''} else cur+=ch} row.push(cur); if(row.some(x=>x.trim()))rows.push(row); return rows;}
 function mapHeader(h){
   const n=norm(h).replace(/[^a-z0-9]/g,'');
-  const exact={codigo:'code',cod:'code',nombrefiscal:'fiscalName',nombre:'fiscalName',razonsocial:'fiscalName',nombrecomercial:'commercialName',telefono:'phone',telefonos:'phone',tlf:'phone',tel:'phone',fax:'fax',movil:'mobile',email:'email',email1:'email',correoelectronico:'email',personadecontacto:'contact',contacto:'contact',nif:'nif',cif:'nif',dni:'nif',nifcif:'nif',agente:'agent',tipodecliente:'type',tipo:'type',direccion:'address',domicilio:'address',ubicacion:'address',poblacion:'city',localidad:'city',ciudad:'city',provincia:'province',cp:'zip',codpostal:'zip',codigopostal:'zip'};
+  const exact={codigo:'code',cod:'code',nombrefiscal:'fiscalName',nombre:'fiscalName',razonsocial:'fiscalName',nombrecomercial:'commercialName',telefono:'phone',telefonos:'phone',tlf:'phone',tel:'phone',fax:'fax',movil:'mobile',email:'email',email1:'email',correoelectronico:'email',personadecontacto:'contact',contacto:'contact',nif:'nif',cif:'nif',dni:'nif',nifcif:'nif',agente:'agent',tipodecliente:'type',tipo:'type',direccion:'address',domicilio:'address',ubicacion:'address',poblacion:'population',localidad:'population',ciudad:'population',provincia:'province',cp:'zip',codpostal:'zip',codigopostal:'zip'};
   if(exact[n]!==undefined) return exact[n];
   // Fallback: keyword matching so small header variations (real-world exports rarely match exactly) still map correctly.
   if(n==='') return '';
@@ -1228,7 +1273,7 @@ function mapHeader(h){
   if(/agente/.test(n)) return 'agent';
   if(/^tipo/.test(n)) return 'type';
   if(/direccion|domicilio|ubicacion/.test(n)) return 'address';
-  if(/poblacion|localidad|ciudad/.test(n)) return 'city';
+  if(/poblacion|localidad|ciudad/.test(n)) return 'population';
   if(/provincia/.test(n)) return 'province';
   if(/^codigo$|^cod$/.test(n)) return 'code';
   return '';
@@ -1251,9 +1296,9 @@ function processCSV(text,companyId){try{
   if(rows.length<2)throw new Error('El archivo está vacío o no contiene filas de datos.');
   const headers=rows[0].map(mapHeader);
   if(!headers.includes('fiscalName')&&!headers.includes('commercialName'))throw new Error('No se ha reconocido ninguna columna de nombre de cliente. Revisa las cabeceras del CSV (Nombre fiscal / Nombre comercial).');
-  let added=0,skipped=0,conflicts=[];
+  let added=0,skipped=0,populationsCompleted=0,conflicts=[];
   rows.slice(1).forEach((row,i)=>{
-    let o={id:uid(),companyId,order:i+1,importance:'',createdAt:new Date().toISOString()};
+    let o={id:uid(),companyId,order:i+1,population:'',createdAt:new Date().toISOString()};
     row.forEach((v,idx)=>{const k=headers[idx]; if(k&&!o[k])o[k]=String(v||'').trim()});
     if(!o.address){o.address=[o.direccion,o.zip,o.city,o.province].filter(Boolean).join(' ')}
     if(!o.fiscalName&&!o.commercialName)return;
@@ -1262,8 +1307,13 @@ function processCSV(text,companyId){try{
     let existing=state.clients.find(c=>clientKey(c)===key);
     if(existing){
       if(existing.companyId===companyId){
-        // Same company, same client: the data already in the program always wins. Only keep row order in sync.
-        existing.order=i+1; skipped++;
+        // Existing CRM data wins, but empty fields can be completed from the CSV.
+        existing.order=i+1;
+        if(!String(existing.population||'').trim()&&String(o.population||'').trim()){
+          existing.population=String(o.population).trim();
+          populationsCompleted++;
+        }
+        skipped++;
       }else{
         conflicts.push({incoming:o,existingId:existing.id});
       }
@@ -1303,7 +1353,7 @@ function setConflictChoice(i,val){
   wrap.querySelectorAll('.conflict-opt').forEach(b=>b.classList.toggle('active',b.dataset.val===val));
 }
 function setAllConflicts(val){$$('.conflict-choice').forEach(wrap=>{wrap.dataset.choice=val; wrap.querySelectorAll('.conflict-opt').forEach(b=>b.classList.toggle('active',b.dataset.val===val));});}
-const FILLABLE_FIELDS=['fiscalName','commercialName','phone','fax','mobile','email','contact','nif','agent','type','address','city','province','zip'];
+const FILLABLE_FIELDS=['fiscalName','commercialName','phone','fax','mobile','email','contact','nif','agent','type','address','population','province','zip'];
 function applyConflicts(conflicts){
   conflicts.forEach((x,i)=>{
     const wrap=$('#confChoice_'+i); const decision=wrap?.dataset.choice||'duplicate';
