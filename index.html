@@ -697,26 +697,53 @@ function download(name,content,type){const blob=new Blob([content],{type}); cons
 
 
 async function initApp(){
+  const form=$('#authForm');
+  form.addEventListener('submit',signInUser);
   const cfg=window.CRM_MDS_CONFIG||{};
-  if(!cfg.supabaseUrl||!cfg.supabaseAnonKey||cfg.supabaseUrl.includes('TU-PROYECTO')){
-    $('#authConfigHelp').innerHTML='Falta configurar <b>config.js</b> con la URL y la clave pública de Supabase.';
-    $('#authForm button').disabled=true;
+  const configMissing=!cfg.supabaseUrl||!cfg.supabaseAnonKey||cfg.supabaseUrl.includes('TU-PROYECTO')||cfg.supabaseAnonKey.includes('TU_CLAVE');
+  if(configMissing){
+    $('#authConfigHelp').innerHTML='<b>Aplicación sin configurar.</b><br>Abre <b>config.js</b> y sustituye TU-PROYECTO y TU_CLAVE_PUBLICA_ANON por los datos reales de Supabase.';
+    $('#authError').textContent='No se puede iniciar sesión hasta configurar la conexión con Supabase.';
     return;
   }
-  supabaseClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-  $('#authForm').addEventListener('submit',signInUser);
-  const {data:{session}}=await supabaseClient.auth.getSession();
-  if(session?.user)await enterApp(session.user);
-  supabaseClient.auth.onAuthStateChange(async(event,session)=>{
-    if(event==='SIGNED_OUT'){currentUser=null;cloudReady=false;$('#authScreen').classList.remove('hidden');}
-  });
+  if(!window.supabase?.createClient){
+    $('#authError').textContent='No se ha podido cargar la librería de Supabase. Comprueba la conexión a Internet y recarga la página.';
+    return;
+  }
+  try{
+    supabaseClient=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    const {data:{session},error}=await supabaseClient.auth.getSession();
+    if(error)throw error;
+    if(session?.user)await enterApp(session.user);
+    supabaseClient.auth.onAuthStateChange(async(event,session)=>{
+      if(event==='SIGNED_OUT'){currentUser=null;cloudReady=false;$('#authScreen').classList.remove('hidden');}
+    });
+  }catch(error){
+    console.error(error);
+    $('#authError').textContent='No se ha podido conectar con Supabase. Revisa la URL y la clave pública de config.js.';
+  }
 }
 async function signInUser(e){
-  e.preventDefault(); $('#authError').textContent='';
+  e.preventDefault();
+  $('#authError').textContent='';
+  if(!supabaseClient){
+    $('#authError').textContent='La aplicación no está conectada con Supabase. Revisa config.js.';
+    return;
+  }
   const email=$('#authEmail').value.trim(),password=$('#authPassword').value;
-  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
-  if(error){$('#authError').textContent='No se ha podido iniciar sesión. Revisa el correo y la contraseña.';return;}
-  await enterApp(data.user);
+  const button=$('#authForm button');
+  button.disabled=true; button.querySelector('span').textContent='Entrando…';
+  try{
+    const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+    if(error)throw error;
+    if(!data?.user)throw new Error('Supabase no devolvió un usuario válido.');
+    await enterApp(data.user);
+  }catch(error){
+    console.error(error);
+    $('#authError').textContent=error?.message||'No se ha podido iniciar sesión. Revisa el correo y la contraseña.';
+  }finally{
+    button.disabled=false; button.querySelector('span').textContent='Entrar';
+  }
 }
 async function enterApp(user){
   currentUser=user; setSyncStatus('Cargando');
