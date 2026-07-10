@@ -320,61 +320,15 @@ button,input,select,textarea{font:inherit;color:inherit}
 .client-admin-meta{margin-top:8px}
 
 /* v7: panel avanzado, mensajería y comisiones */
-.header-chat{position:absolute;right:92px;width:34px;height:34px;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--ink-2)}
-.header-chat svg{width:15px;height:15px}
-.header-chat-badge{position:absolute;right:-4px;top:-5px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--red);color:#fff;border:2px solid var(--surface);font-family:var(--mono);font-size:7px;display:none;align-items:center;justify-content:center}
-.header-chat-badge.show{display:flex}
-.admin-dashboard-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
-.admin-dashboard-title{font-size:20px;font-weight:700;line-height:1.1}
-.admin-dashboard-sub{font-family:var(--mono);font-size:8px;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-3);margin-top:5px}
-.admin-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:12px}
-.admin-kpi{border:1px solid var(--line);border-radius:13px;padding:13px;background:var(--surface)}
-.admin-kpi b{display:block;font-family:var(--mono);font-size:24px;font-weight:500}
-.admin-kpi span{display:block;font-family:var(--mono);font-size:7.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-3);margin-top:4px}
-.admin-kpi.attention{background:var(--amber-soft);border-color:rgba(148,98,11,.22)}
-.admin-kpi.positive{background:var(--green-soft);border-color:rgba(28,107,65,.20)}
-.admin-quick{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
-.admin-quick button{min-height:70px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;text-align:left;padding:12px}
-.admin-quick button svg{width:17px;height:17px}
-.admin-section{margin-top:16px}
-.alert-list{display:flex;flex-direction:column;gap:7px}
-.alert-item{border:1px solid var(--line);border-radius:11px;padding:11px;background:var(--surface);display:flex;gap:9px;align-items:flex-start}
-.alert-item svg{width:15px;height:15px;color:var(--amber);flex:0 0 auto}
-.alert-item b{font-size:12px;display:block}
-.alert-item span{font-family:var(--mono);font-size:8px;color:var(--ink-3);display:block;margin-top:3px}
-.leader-row{display:grid;grid-template-columns:24px 1fr 46px;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-soft)}
-.leader-row:last-child{border-bottom:0}
-.leader-rank{font-family:var(--mono);font-size:10px;color:var(--ink-3)}
-.leader-name{font-size:12.5px;font-weight:600}
-.leader-sub{font-family:var(--mono);font-size:7.5px;color:var(--ink-3);margin-top:2px}
-.leader-score{font-family:var(--mono);font-size:15px;text-align:right}
-.chat-layout{display:flex;flex-direction:column;gap:10px}
-.conversation-item{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--surface);cursor:pointer}
-.conversation-item.unread{border-color:rgba(31,95,166,.35);background:var(--accent-soft)}
-.conversation-name{font-size:13px;font-weight:700}
-.conversation-preview{font-size:11px;color:var(--ink-2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.conversation-meta{font-family:var(--mono);font-size:7.5px;color:var(--ink-3);margin-top:5px}
-.chat-thread{display:flex;flex-direction:column;gap:8px;min-height:260px;max-height:52dvh;overflow:auto;padding:4px}
-.chat-bubble{max-width:82%;padding:10px 11px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);align-self:flex-start}
-.chat-bubble.mine{align-self:flex-end;background:var(--ink);color:#fff;border-color:var(--ink)}
-.chat-bubble-text{font-size:12.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
-.chat-bubble-time{font-family:var(--mono);font-size:7px;opacity:.58;margin-top:5px;text-align:right}
-.chat-compose{display:grid;grid-template-columns:1fr 42px;gap:8px;position:sticky;bottom:0;background:var(--surface);padding-top:9px}
-.chat-compose textarea{min-height:42px;max-height:110px;resize:none}
-.chat-send{border:0;background:var(--ink);color:#fff;border-radius:11px;display:flex;align-items:center;justify-content:center}
-.chat-send svg{width:16px;height:16px}
-.commission-card{border:1px solid var(--line);border-radius:12px;padding:13px;background:var(--surface);margin-bottom:9px}
-.commission-card.paid{border-color:rgba(28,107,65,.25);background:linear-gradient(180deg,#fff 0%,var(--green-soft) 170%)}
-.commission-card.unpaid{border-color:rgba(148,98,11,.26);background:linear-gradient(180deg,#fff 0%,var(--amber-soft) 170%)}
-.commission-amount{font-family:var(--mono);font-size:21px;font-weight:500}
-.commission-concept{font-size:12.5px;font-weight:600;margin-top:2px}
-.commission-meta{font-family:var(--mono);font-size:8px;color:var(--ink-3);margin-top:5px}
-.money-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
-.money-box{border:1px solid var(--line);border-radius:12px;padding:13px;background:var(--surface-2)}
-.money-box b{display:block;font-family:var(--mono);font-size:20px}
-.money-box span{font-family:var(--mono);font-size:7.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-3)}
-.notification-permission{border:1px solid var(--line);border-radius:11px;padding:11px;background:var(--surface-2);margin-bottom:10px}
-@media(max-width:370px){.header-chat{right:82px}.top-action{padding-left:10px;padding-right:10px}}
+@media(max-width:370px){.top-action{padding-left:10px;padding-right:10px}}
+
+.permissions-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.permission-item{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--line);border-radius:11px;padding:11px;background:var(--surface-2)}
+.permission-item input{margin-top:3px}
+.permission-item b{display:block;font-size:12px}
+.permission-item span{display:block;font-family:var(--mono);font-size:7.5px;line-height:1.4;color:var(--ink-3);margin-top:3px}
+.permission-note{font-family:var(--mono);font-size:8px;line-height:1.5;color:var(--ink-3);margin-top:8px}
+@media(max-width:370px){.permissions-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -396,7 +350,6 @@ button,input,select,textarea{font:inherit;color:inherit}
   <div class="header">
     <img class="logo" src="https://www.matriculadosdelsur.com/wp-content/uploads/2025/10/grupomds-e1705059389337-125x97.png" onerror="this.style.display='none'">
     <div class="header-title">CRM MDS</div><div class="sync-pill" id="syncPill">Sincronizando</div>
-    <button class="header-chat" id="headerChatBtn" type="button" onclick="openMessenger()" aria-label="Mensajes">${ICONS.mail}<span class="header-chat-badge" id="chatBadge"></span></button>
     <button class="top-action" onclick="openActivity()" id="topActionBtn"></button>
   </div>
   <main class="content" id="content">
@@ -458,7 +411,7 @@ const ICONS={
 };
 const NAV_ITEMS=[['inicio','home','Inicio'],['clientes','users','Clientes'],['agenda','agenda','Agenda'],['calendario','calendar','Calendario'],['historial','history','Historial'],['ajustes','settings','Ajustes']];
 
-const DEFAULT_STATE=()=>({settings:{commercial:'',inactiveDays:90},companies:[{id:uid(),name:'Grupo MDS',color:'#1C6FB8',assignedUserIds:[]}],clients:[],activities:[],messages:[],commissions:[]});
+const DEFAULT_STATE=()=>({settings:{commercial:'',inactiveDays:90},companies:[{id:uid(),name:'Grupo MDS',color:'#1C6FB8',assignedUserIds:[]}],clients:[],activities:[],commissions:[],permissions:{}});
 let state=loadLocal(), supabaseClient=null, currentUser=null, currentProfile=null, teamMembers=[], cloudSaveTimer=null, cloudReady=false, cloudUpdatedAt='', cloudPollTimer=null, cloudPollBusy=false;
 function loadLocal(){try{const d=JSON.parse(localStorage.getItem(LS)); if(d&&d.companies&&d.clients&&d.activities) return normalizeState(d);}catch(e){} return DEFAULT_STATE();}
 function normalizeState(d){
@@ -466,11 +419,30 @@ function normalizeState(d){
   d.companies=(d.companies||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[]}));
   d.clients=(d.clients||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[]}));
   d.activities=(d.activities||[]).map(a=>({...a,assignedUserId:a.assignedUserId||''}));
-  d.messages=Array.isArray(d.messages)?d.messages:[];
-  d.commissions=Array.isArray(d.commissions)?d.commissions:[];
+  d.commissions=(Array.isArray(d.commissions)?d.commissions:[]).map(c=>({
+    ...c,
+    dateFrom:c.dateFrom||c.date||'',
+    dateTo:c.dateTo||c.dateFrom||c.date||''
+  }));
+  d.permissions=d.permissions&&typeof d.permissions==='object'?d.permissions:{};
   return d;
 }
 function isAdmin(){return currentProfile?.role==='admin'}
+const DEFAULT_COMMERCIAL_PERMISSIONS={
+  addClients:true,
+  editClients:true,
+  deleteClients:false,
+  deleteVisits:false
+};
+function permissionsFor(userId=currentUser?.id){
+  if(!userId)return {...DEFAULT_COMMERCIAL_PERMISSIONS};
+  const member=teamMembers.find(m=>m.user_id===userId);
+  if(member?.role==='admin')return {addClients:true,editClients:true,deleteClients:true,deleteVisits:true};
+  return {...DEFAULT_COMMERCIAL_PERMISSIONS,...(state.permissions?.[userId]||{})};
+}
+function hasPermission(name){
+  return isAdmin()||!!permissionsFor()[name];
+}
 function memberName(id){const m=teamMembers.find(x=>x.user_id===id);return m?.display_name||m?.email||'Sin asignar'}
 function visibleCompanies(){
   if(isAdmin())return state.companies;
@@ -562,7 +534,7 @@ $('#sheetCloseBtn').addEventListener('click',closeSheet);
 $('#nav').innerHTML=NAV_ITEMS.map(([v,icon,label],i)=>`<button data-view="${v}" class="${i===0?'active':''}">${ICONS[icon]}<span>${label}</span></button>`).join('');
 document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-view]'); if(!b)return; showView(b.dataset.view);});
 function showView(v){activeView=v; $$('.view').forEach(x=>x.classList.remove('active')); $('#view-'+v).classList.add('active'); $$('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v)); render();}
-function render(){renderInicio();renderClientes();renderAgenda();renderCalendar();renderHistorial();renderAjustes();updateChatBadge();}
+function render(){renderInicio();renderClientes();renderAgenda();renderCalendar();renderHistorial();renderAjustes();}
 
 /* ---------- Shared badges / empty states ---------- */
 function statusBadge(s){
@@ -623,7 +595,7 @@ function renderClientes(){
   if(imp)arr=arr.filter(c=>(c.importance||'')===imp);
   arr.sort((a,b)=>(company(a.companyId).name.localeCompare(company(b.companyId).name)||((a.order??999999)-(b.order??999999))||String(a.fiscalName).localeCompare(String(b.fiscalName))));
   const filtersOpen=!!$('#clientFilters') && !$('#clientFilters').classList.contains('hidden');
-  $('#view-clientes').innerHTML=`<div class="section-title">Clientes</div>
+  $('#view-clientes').innerHTML=`<div class="row" style="align-items:center;margin-bottom:12px"><div class="section-title" style="margin:0">Clientes</div>${hasPermission('addClients')?`<button class="btn primary" style="padding:9px 11px" onclick="openNewClient()">${ICONS.plus}<span>Nuevo</span></button>`:''}</div>
   <div class="search-bar">${ICONS.search}<input id="clientSearch" placeholder="Buscar por nombre, CIF, contacto, teléfono..." value="${esc(q)}" autocomplete="off" inputmode="search" oninput="handleClientSearch(this)"></div>
   <button class="filter-toggle" onclick="toggleBlock('clientFilters')">${ICONS.filter}<span>Filtros</span>${imp?`<span class="filter-active-dot"></span>`:''}</button>
   <div id="clientFilters" class="field ${filtersOpen?'':'hidden'}" style="margin-top:2px"><select id="impFilter" onchange="renderClientes()"><option value="">Todas las importancias</option>${['Baja','Media','Alta','Muy alta'].map(x=>`<option ${imp===x?'selected':''}>${x}</option>`).join('')}</select></div>
@@ -686,28 +658,19 @@ function renderAjustes(){
     <button class="btn full" onclick="openCommercialStats()">${ICONS.history}<span>Productividad del equipo</span></button>
     <button class="btn full" onclick="openCommissionsAdmin()">${ICONS.building}<span>Comisiones</span></button>
   </div>`:''}
-  <div class="settings-group"><div class="section-title">Comunicación</div>
-    <button class="btn full" onclick="openMessenger()">${ICONS.mail}<span>Mensajes del equipo</span><span id="settingsUnreadCount"></span></button>
-    <button class="btn full" onclick="requestNotificationPermission()">${ICONS.alertTri}<span>Activar notificaciones</span></button>
-  </div>
-  ${!isAdmin()?`<div class="settings-group"><div class="section-title">Retribución</div>
-    <button class="btn full" onclick="openMyCommissions()">${ICONS.download}<span>Mis comisiones</span></button>
-  </div>`:''}
-  <div class="card" id="pwaSettingsCard"><div class="settings-card-title">${ICONS.download}<span>Aplicación móvil</span></div><div class="small" style="margin-top:10px" id="pwaSettingsText">Puedes instalar CRM MDS en la pantalla de inicio.</div><button class="btn full primary" id="pwaSettingsButton" style="margin-top:12px;margin-bottom:0" onclick="requestAppInstall()">${ICONS.download}<span>Instalar aplicación</span></button></div>
-  <div class="card"><div class="settings-card-title">${ICONS.building}<span>Empresa activa</span></div><div class="field" style="margin-top:12px;margin-bottom:0"><select onchange="selectedCompany=this.value;render()"><option value="all" ${selectedCompany==='all'?'selected':''}>Todas las empresas</option>${opts}</select></div></div>
   <div class="settings-group"><div class="section-title">Copias de seguridad</div>
     <button class="btn full primary" onclick="exportJSON()">${ICONS.download}<span>Descargar copia completa (JSON)</span></button>
     <label class="btn full">${ICONS.upload}<span>Importar copia (JSON)</span><input type="file" accept=".json,application/json" class="hidden" onchange="importJSON(this.files[0])"></label>
     <button class="btn full" onclick="exportClientsCSV()">${ICONS.download}<span>Exportar clientes (CSV)</span></button>
   </div>
-  <div class="settings-group"><div class="section-title">Importar clientes</div>
+  ${hasPermission('addClients')?`<div class="settings-group"><div class="section-title">Importar clientes</div>
     <div class="card">
       <div class="field"><label>Empresa destino</label><select id="importCompany" onchange="$('#importCompany').classList.remove('field-error')"><option value="">Selecciona empresa</option>${opts}</select></div>
       <label class="btn full blue">${ICONS.upload}<span>Subir CSV de clientes</span><input type="file" class="hidden" accept=".csv,text/csv,.txt" onclick="return checkImportCompanySelected()" onchange="importCSV(this.files[0])"></label>
       <div class="small" style="margin-top:2px">Los clientes que ya tengas guardados nunca se sobrescriben: sus datos siempre prevalecen sobre los del CSV.</div>
       <div id="importResult"></div>
     </div>
-  </div>
+  </div>`:''}
   ${isAdmin()?`<div class="settings-group"><div class="section-title">Avanzado</div>
     <button class="btn full" onclick="openCompaniesAdmin()">${ICONS.building}<span>Administrar empresas</span></button>
     <button class="btn full danger" onclick="borrarTodo()">${ICONS.trash}<span>Borrar todos los datos</span></button>
@@ -745,16 +708,65 @@ function openClient(id){
     </div>
   </div>
   <button class="btn full primary" onclick="openActivity(null,'${id}')">${ICONS.plus}<span>Nueva visita</span></button>
-  <button class="btn full" onclick="editClient('${id}')">${ICONS.edit}<span>Editar cliente</span></button>
+  ${hasPermission('editClients')?`<button class="btn full" onclick="editClient('${id}')">${ICONS.edit}<span>Editar cliente</span></button>`:''}
+  ${hasPermission('deleteClients')?`<button class="btn full danger" onclick="deleteClient('${id}')">${ICONS.trash}<span>Eliminar cliente</span></button>`:''}
   <div class="section-title" style="margin-top:18px">Visitas</div>
   <div class="list">${cards(acts,true)}</div>`);
 }
 
+
+function openNewClient(){
+  if(!hasPermission('addClients'))return toast('No tienes permiso para añadir clientes.');
+  const companies=visibleCompanies();
+  if(!companies.length)return toast('No tienes empresas asignadas.');
+  openSheet('Nuevo cliente','Alta manual',`
+    <div class="field"><label>Empresa</label><select id="ncCompany"><option value="">Selecciona empresa</option>${companies.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')}</select></div>
+    <div class="field"><label>Nombre fiscal</label><input id="ncFiscal"></div>
+    <div class="field"><label>Nombre comercial</label><input id="ncCommercial"></div>
+    <div class="field"><label>CIF / NIF</label><input id="ncNif"></div>
+    <div class="field"><label>Persona de contacto</label><input id="ncContact"></div>
+    <div class="grid2" style="margin-bottom:0"><div class="field"><label>Teléfono</label><input id="ncPhone" inputmode="tel"></div><div class="field"><label>Móvil</label><input id="ncMobile" inputmode="tel"></div></div>
+    <div class="field"><label>Email</label><input id="ncEmail" type="email"></div>
+    <div class="field"><label>Dirección</label><input id="ncAddress"></div>
+    <div class="field"><label>Importancia</label><select id="ncImportance"><option value="">Sin etiqueta</option>${['Baja','Media','Alta','Muy alta'].map(x=>`<option>${x}</option>`).join('')}</select></div>
+    <div class="field"><label>Notas</label><textarea id="ncNotes"></textarea></div>
+    <button class="btn full primary" onclick="saveNewClient()">${ICONS.check}<span>Guardar cliente</span></button>
+  `);
+}
+function saveNewClient(){
+  if(!hasPermission('addClients'))return toast('No tienes permiso para añadir clientes.');
+  const companyId=$('#ncCompany').value;
+  const fiscalName=$('#ncFiscal').value.trim();
+  const commercialName=$('#ncCommercial').value.trim();
+  if(!companyId)return toast('Selecciona una empresa.');
+  if(!fiscalName&&!commercialName)return toast('Introduce el nombre del cliente.');
+  const c={
+    id:uid(),companyId,fiscalName,commercialName,nif:$('#ncNif').value.trim(),
+    contact:$('#ncContact').value.trim(),phone:$('#ncPhone').value.trim(),
+    mobile:$('#ncMobile').value.trim(),email:$('#ncEmail').value.trim(),
+    address:$('#ncAddress').value.trim(),importance:$('#ncImportance').value,
+    notes:$('#ncNotes').value.trim(),alertMsg:'',assignedUserIds:isAdmin()?[]:[currentUser.id],
+    createdAt:new Date().toISOString()
+  };
+  state.clients.push(c);save();closeSheet();render();toast('Cliente añadido.');
+}
+async function deleteClient(id){
+  if(!hasPermission('deleteClients'))return toast('No tienes permiso para eliminar clientes.');
+  const c=client(id);if(!c)return;
+  const related=state.activities.filter(a=>a.clientId===id).length;
+  const ok=await showConfirm('Eliminar cliente',related?`Se eliminará el cliente y sus ${related} visita(s). Esta acción no se puede deshacer.`:'El cliente se eliminará de forma permanente.');
+  if(!ok)return;
+  state.clients=state.clients.filter(x=>x.id!==id);
+  state.activities=state.activities.filter(a=>a.clientId!==id);
+  save();closeSheet();render();toast('Cliente eliminado.');
+}
+
 function editClient(id){
+  if(!hasPermission('editClients'))return toast('No tienes permiso para editar clientes.');
   const c=client(id);
   openSheet('Editar cliente',c.fiscalName||'',`<div class="field"><label>Nombre fiscal</label><input id="ecFiscal" value="${esc(c.fiscalName||'')}"></div><div class="field"><label>Nombre comercial</label><input id="ecCom" value="${esc(c.commercialName||'')}"></div><div class="field"><label>Importancia</label><select id="ecImp"><option value="">Sin etiqueta</option>${['Baja','Media','Alta','Muy alta'].map(x=>`<option ${c.importance===x?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Mensaje emergente</label><textarea id="ecAlert">${esc(c.alertMsg||'')}</textarea></div><div class="field"><label>Notas</label><textarea id="ecNotes">${esc(c.notes||'')}</textarea></div><button class="btn full primary" onclick="saveClientEdit('${id}')">${ICONS.check}<span>Guardar cliente</span></button>`);
 }
-function saveClientEdit(id){const c=client(id); Object.assign(c,{fiscalName:$('#ecFiscal').value,commercialName:$('#ecCom').value,importance:$('#ecImp').value,alertMsg:$('#ecAlert').value,notes:$('#ecNotes').value}); save(); closeSheet(); render(); toast('Cliente guardado.');}
+function saveClientEdit(id){if(!hasPermission('editClients'))return toast('No tienes permiso para editar clientes.');const c=client(id); Object.assign(c,{fiscalName:$('#ecFiscal').value,commercialName:$('#ecCom').value,importance:$('#ecImp').value,alertMsg:$('#ecAlert').value,notes:$('#ecNotes').value}); save(); closeSheet(); render(); toast('Cliente guardado.');}
 
 /* ---------- Actividad (visitas) ---------- */
 function openActivity(id=null, preClient=null){
@@ -933,10 +945,11 @@ function openActivityDetail(id){
   </div>
   <div class="actions">
     <button class="btn" onclick="openActivity('${a.id}')">${ICONS.edit}<span>Editar</span></button>
-    ${isAdmin()?`<button class="btn danger" onclick="deleteActivity('${a.id}')">${ICONS.trash}<span>Eliminar</span></button>`:''}
+    ${hasPermission('deleteVisits')?`<button class="btn danger" onclick="deleteActivity('${a.id}')">${ICONS.trash}<span>Eliminar</span></button>`:''}
   </div>`);
 }
 async function deleteActivity(id){
+  if(!hasPermission('deleteVisits'))return toast('No tienes permiso para eliminar visitas.');
   const kids=activityChildren(id);
   const msg=kids.length?`Esta visita tiene ${kids.length} seguimiento(s) encadenados. Se eliminará toda la cadena.`:'Esta visita se eliminará de forma permanente.';
   const ok=await showConfirm('Eliminar visita',msg); if(!ok)return;
@@ -1184,8 +1197,7 @@ async function pollCloudState(){
         render();
         setSyncStatus('Actualizado');
         await notifyNewAssignments();
-        await notifyNewMessages();
-        updateChatBadge();
+        
       }
     }
   }catch(error){
@@ -1202,108 +1214,6 @@ function startCloudPolling(){
 
 /* ---------- Mensajería, notificaciones y comisiones ---------- */
 function assignableMembers(){return teamMembers.slice().sort((a,b)=>(a.display_name||a.email||'').localeCompare(b.display_name||b.email||''))}
-function messageSeenKey(){return `crm_mds_message_seen_${currentUser?.id||'anon'}`}
-function getMessageSeen(){
-  try{return JSON.parse(localStorage.getItem(messageSeenKey())||'{}')}catch(e){return {}}
-}
-function setConversationSeen(peerId){
-  const seen=getMessageSeen();
-  const last=state.messages.filter(m=>isMessageBetween(m,currentUser?.id,peerId)).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)))[0];
-  if(last)seen[peerId]=last.id;
-  localStorage.setItem(messageSeenKey(),JSON.stringify(seen));
-  updateChatBadge();
-}
-function isMessageBetween(m,a,b){
-  return (m.senderId===a&&m.recipientId===b)||(m.senderId===b&&m.recipientId===a);
-}
-function unreadMessages(){
-  if(!currentUser)return [];
-  const seen=getMessageSeen();
-  return state.messages.filter(m=>m.recipientId===currentUser.id).filter(m=>{
-    const peer=m.senderId;
-    const conversation=state.messages.filter(x=>isMessageBetween(x,currentUser.id,peer)).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
-    const seenId=seen[peer];
-    if(!seenId)return true;
-    return conversation.findIndex(x=>x.id===m.id)>conversation.findIndex(x=>x.id===seenId);
-  });
-}
-function updateChatBadge(){
-  const n=unreadMessages().length;
-  const badge=$('#chatBadge');
-  if(badge){badge.textContent=n>99?'99+':String(n);badge.classList.toggle('show',n>0)}
-  const settings=$('#settingsUnreadCount');
-  if(settings)settings.textContent=n?` · ${n} nuevo${n===1?'':'s'}`:'';
-}
-async function requestNotificationPermission(){
-  if(!('Notification' in window))return showNotice('Notificaciones no disponibles','Este navegador no admite notificaciones del sistema.');
-  if(Notification.permission==='granted'){toast('Las notificaciones ya están activadas.');return true;}
-  const result=await Notification.requestPermission();
-  if(result==='granted'){toast('Notificaciones activadas.');return true;}
-  await showNotice('Permiso no concedido','Puedes activar las notificaciones desde los ajustes del navegador.');
-  return false;
-}
-async function showSystemNotification(title,body,tag='crm-mds'){
-  if(!('Notification' in window)||Notification.permission!=='granted')return;
-  try{
-    const reg=await navigator.serviceWorker?.ready;
-    if(reg)await reg.showNotification(title,{body,tag,icon:'./icons/icon-192.png',badge:'./icons/icon-192.png'});
-    else new Notification(title,{body,tag});
-  }catch(e){console.warn('No se pudo mostrar la notificación',e)}
-}
-function openMessenger(){
-  if(!currentUser)return;
-  const members=assignableMembers().filter(m=>m.user_id!==currentUser.id);
-  const seen=getMessageSeen();
-  const items=members.map(m=>{
-    const conv=state.messages.filter(x=>isMessageBetween(x,currentUser.id,m.user_id)).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
-    const last=conv[0];
-    const incoming=conv.filter(x=>x.recipientId===currentUser.id);
-    const unread=incoming.some(x=>{
-      if(!seen[m.user_id])return true;
-      const asc=conv.slice().reverse();
-      return asc.findIndex(y=>y.id===x.id)>asc.findIndex(y=>y.id===seen[m.user_id]);
-    });
-    return `<div class="conversation-item ${unread?'unread':''}" onclick="openConversation('${m.user_id}')">
-      <div class="row"><div style="min-width:0"><div class="conversation-name">${esc(m.display_name||m.email)} ${m.role==='admin'?'<span class="role-badge admin">Admin</span>':''}</div>
-      <div class="conversation-preview">${last?esc(last.text):'Iniciar conversación'}</div>
-      <div class="conversation-meta">${last?new Date(last.createdAt).toLocaleString('es-ES'):esc(m.email||'')}</div></div>${ICONS.chevron}</div>
-    </div>`;
-  }).join('');
-  openSheet('Mensajes','Comunicación interna del equipo',`
-    ${Notification.permission!=='granted'?`<div class="notification-permission"><div class="small">Activa las notificaciones para recibir avisos de mensajes y nuevas visitas.</div><button class="btn full" style="margin-top:9px;margin-bottom:0" onclick="requestNotificationPermission()">${ICONS.alertTri}<span>Activar notificaciones</span></button></div>`:''}
-    <div class="chat-layout">${items||empty('users','No hay otros usuarios','Crea otro usuario en Supabase para comenzar una conversación.')}</div>
-  `);
-}
-function openConversation(peerId){
-  const peer=teamMembers.find(m=>m.user_id===peerId);
-  if(!peer)return;
-  setConversationSeen(peerId);
-  const messages=state.messages.filter(m=>isMessageBetween(m,currentUser.id,peerId)).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
-  openSheet(peer.display_name||peer.email,peer.role==='admin'?'Administrador':'Equipo',`
-    <div class="chat-thread" id="chatThread">
-      ${messages.length?messages.map(m=>`<div class="chat-bubble ${m.senderId===currentUser.id?'mine':''}"><div class="chat-bubble-text">${esc(m.text)}</div><div class="chat-bubble-time">${new Date(m.createdAt).toLocaleString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`).join(''):empty('mail','Sin mensajes','Escribe el primer mensaje de esta conversación.')}
-    </div>
-    <div class="chat-compose"><textarea id="chatInput" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage('${peerId}')}"></textarea><button class="chat-send" onclick="sendChatMessage('${peerId}')" aria-label="Enviar">${ICONS.chevron}</button></div>
-  `);
-  requestAnimationFrame(()=>{const t=$('#chatThread');if(t)t.scrollTop=t.scrollHeight;$('#chatInput')?.focus()});
-}
-function sendChatMessage(peerId){
-  const input=$('#chatInput');
-  const text=input?.value.trim();
-  if(!text)return;
-  state.messages.push({id:uid(),senderId:currentUser.id,recipientId:peerId,text,createdAt:new Date().toISOString()});
-  input.value='';
-  save();
-  openConversation(peerId);
-}
-async function notifyNewMessages(){
-  const list=unreadMessages();
-  if(!list.length)return;
-  const latest=list.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)))[0];
-  const sender=teamMembers.find(m=>m.user_id===latest.senderId);
-  await showSystemNotification(sender?.display_name||sender?.email||'Nuevo mensaje',latest.text,'crm-message-'+latest.id);
-  updateChatBadge();
-}
 function euro(value){return new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(Number(value)||0)}
 function commissionsFor(userId){return state.commissions.filter(c=>c.userId===userId).sort((a,b)=>String(b.date||b.createdAt).localeCompare(String(a.date||a.createdAt)))}
 function commissionTotals(userId){
@@ -1313,7 +1223,7 @@ function commissionTotals(userId){
 function commissionCard(c,editable=false){
   const user=teamMembers.find(m=>m.user_id===c.userId);
   return `<div class="commission-card ${c.status==='paid'?'paid':'unpaid'}">
-    <div class="row"><div><div class="commission-amount">${euro(c.amount)}</div><div class="commission-concept">${esc(c.concept||'Comisión')}</div><div class="commission-meta">${esc(user?.display_name||user?.email||'')} · ${fmtDate(c.date)} · ${c.status==='paid'?'Cobrada':'Pendiente de cobro'}</div></div>${statusBadge(c.status==='paid'?'done':'pending')}</div>
+    <div class="row"><div><div class="commission-amount">${euro(c.amount)}</div><div class="commission-concept">${esc(c.concept||'Comisión')}</div><div class="commission-meta">${esc(user?.display_name||user?.email||'')} · ${fmtDate(c.dateFrom||c.date)}${c.dateTo&&c.dateTo!==(c.dateFrom||c.date)?' – '+fmtDate(c.dateTo):''} · ${c.status==='paid'?'Cobrada':'Pendiente de cobro'}</div></div>${statusBadge(c.status==='paid'?'done':'pending')}</div>
     ${c.notes?`<div class="small" style="margin-top:9px">${esc(c.notes)}</div>`:''}
     ${editable?`<div class="actions"><button class="btn ${c.status==='paid'?'warn':'blue'}" onclick="toggleCommissionPaid('${c.id}')">${ICONS.check}<span>${c.status==='paid'?'Marcar pendiente':'Marcar cobrada'}</span></button><button class="btn danger" onclick="deleteCommission('${c.id}')">${ICONS.trash}<span>Eliminar</span></button></div>`:''}
   </div>`;
@@ -1330,7 +1240,7 @@ function openCommissionsAdmin(userId='all'){
     <div class="field"><label>Filtrar usuario</label><select onchange="openCommissionsAdmin(this.value)"><option value="all">Todo el equipo</option>${members.map(m=>`<option value="${m.user_id}" ${userId===m.user_id?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>
     <button class="btn full primary" onclick="openCommissionForm('${userId==='all'?'':userId}')">${ICONS.plus}<span>Añadir comisión</span></button>
     <div class="section-title" style="margin-top:16px">Movimientos</div>
-    <div>${list.length?list.sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(c=>commissionCard(c,true)).join(''):empty('inbox','Sin comisiones','Añade la primera comisión del equipo.')}</div>
+    <div>${list.length?list.sort((a,b)=>String(b.dateFrom||b.date).localeCompare(String(a.dateFrom||a.date))).map(c=>commissionCard(c,true)).join(''):empty('inbox','Sin comisiones','Añade la primera comisión del equipo.')}</div>
   `);
 }
 function openCommissionForm(userId=''){
@@ -1338,7 +1248,8 @@ function openCommissionForm(userId=''){
   openSheet('Nueva comisión','Asignar retribución',`
     <div class="field"><label>Usuario</label><select id="commissionUser"><option value="">Selecciona usuario</option>${assignableMembers().map(m=>`<option value="${m.user_id}" ${userId===m.user_id?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>
     <div class="field"><label>Concepto</label><input id="commissionConcept" placeholder="Venta, objetivo mensual, renovación..."></div>
-    <div class="grid2" style="margin-bottom:0"><div class="field"><label>Importe (€)</label><input id="commissionAmount" type="number" min="0" step="0.01" inputmode="decimal"></div><div class="field"><label>Fecha</label><input id="commissionDate" type="date" value="${today()}"></div></div>
+    <div class="field"><label>Importe (€)</label><input id="commissionAmount" type="number" min="0" step="0.01" inputmode="decimal"></div>
+    <div class="grid2" style="margin-bottom:0"><div class="field"><label>Periodo desde</label><input id="commissionDateFrom" type="date" value="${today()}"></div><div class="field"><label>Periodo hasta</label><input id="commissionDateTo" type="date" value="${today()}"></div></div>
     <div class="field"><label>Estado</label><select id="commissionStatus"><option value="unpaid">Pendiente de cobro</option><option value="paid">Cobrada</option></select></div>
     <div class="field"><label>Notas</label><textarea id="commissionNotes"></textarea></div>
     <button class="btn full primary" onclick="saveCommission()">${ICONS.check}<span>Guardar comisión</span></button>
@@ -1350,7 +1261,10 @@ function saveCommission(){
   const amount=Number($('#commissionAmount').value);
   if(!userId)return toast('Selecciona un usuario.');
   if(!Number.isFinite(amount)||amount<=0)return toast('Introduce un importe válido.');
-  state.commissions.push({id:uid(),userId,concept:$('#commissionConcept').value.trim()||'Comisión',amount,date:$('#commissionDate').value||today(),status:$('#commissionStatus').value,notes:$('#commissionNotes').value.trim(),createdAt:new Date().toISOString(),createdBy:currentUser.id,paidAt:$('#commissionStatus').value==='paid'?new Date().toISOString():''});
+  const dateFrom=$('#commissionDateFrom').value||today();
+  const dateTo=$('#commissionDateTo').value||dateFrom;
+  if(dateTo<dateFrom)return toast('La fecha “hasta” no puede ser anterior a la fecha “desde”.');
+  state.commissions.push({id:uid(),userId,concept:$('#commissionConcept').value.trim()||'Comisión',amount,dateFrom,dateTo,status:$('#commissionStatus').value,notes:$('#commissionNotes').value.trim(),createdAt:new Date().toISOString(),createdBy:currentUser.id,paidAt:$('#commissionStatus').value==='paid'?new Date().toISOString():''});
   save();openCommissionsAdmin(userId);toast('Comisión guardada.');
 }
 function toggleCommissionPaid(id){
@@ -1406,7 +1320,7 @@ function openAdminDashboard(){
     <div class="admin-quick">
       <button class="btn" onclick="openActivity()">${ICONS.plus}<span>Nueva visita</span></button>
       <button class="btn" onclick="openTeamAdmin()">${ICONS.users}<span>Asignaciones</span></button>
-      <button class="btn" onclick="openMessenger()">${ICONS.mail}<span>Mensajes</span></button>
+      <button class="btn" onclick="openCommercialStats()">${ICONS.history}<span>Productividad</span></button>
       <button class="btn" onclick="openCommissionsAdmin()">${ICONS.download}<span>Comisiones</span></button>
     </div>
     <div class="admin-section"><div class="section-title">Atención necesaria</div><div class="alert-list">${alerts.length?alerts.join(''):'<div class="empty-state"><div class="empty-title">Todo bajo control</div><div class="empty-sub">No hay alertas importantes en este momento.</div></div>'}</div></div>
@@ -1427,8 +1341,15 @@ function openTeamAdmin(selectedUserId=''){
   const clients=state.clients.slice().sort((a,b)=>clientName(a.id).localeCompare(clientName(b.id))).map(c=>`<label class="assign-row client-assignment-row"><input type="checkbox" data-client-assignment="${c.id}" ${(c.assignedUserIds||[]).includes(selected)?'checked':''}><span class="assign-row-content"><span class="assign-row-title">${esc(clientName(c.id))}</span><span class="assign-row-sub">${esc(company(c.companyId).name)}</span></span></label>`).join('');
   openSheet('Equipo y asignaciones','Administrador',`
     <div class="field"><label>Usuario asignable</label><select id="teamSelectedUser" onchange="openTeamAdmin(this.value)">${commercials.map(m=>`<option value="${m.user_id}" ${m.user_id===selected?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>
-    ${person?`<div class="card"><div class="row"><div><div class="card-title">${esc(person.display_name||person.email)}</div><div class="card-sub">${esc(person.email||'')}</div></div><span class="role-badge">${esc(person.role)}</span></div></div>`:''}
-    <div class="section-title">Empresas asignadas</div>
+    ${person?`<div class="card"><div class="row"><div><div class="card-title">${esc(person.display_name||person.email)}</div><div class="card-sub">${esc(person.email||'')}</div></div><span class="role-badge ${person.role==='admin'?'admin':''}">${esc(person.role)}</span></div></div>`:''}
+    ${person?.role!=='admin'?`<div class="section-title">Permisos del comercial</div>
+    <div class="permissions-grid">
+      <label class="permission-item"><input type="checkbox" id="permAddClients" ${permissionsFor(selected).addClients?'checked':''}><span><b>Añadir clientes</b><span>Alta manual e importación.</span></span></label>
+      <label class="permission-item"><input type="checkbox" id="permEditClients" ${permissionsFor(selected).editClients?'checked':''}><span><b>Editar clientes</b><span>Modificar datos y notas.</span></span></label>
+      <label class="permission-item"><input type="checkbox" id="permDeleteClients" ${permissionsFor(selected).deleteClients?'checked':''}><span><b>Eliminar clientes</b><span>Elimina también sus visitas.</span></span></label>
+      <label class="permission-item"><input type="checkbox" id="permDeleteVisits" ${permissionsFor(selected).deleteVisits?'checked':''}><span><b>Eliminar visitas</b><span>Borrar actividades asignadas.</span></span></label>
+    </div><div class="permission-note">Los administradores conservan siempre todos los permisos.</div>`:''}
+    <div class="section-title" style="margin-top:18px">Empresas asignadas</div>
     <div class="assign-list">${companies||'<div class="pick-item">No hay empresas.</div>'}</div>
     <div class="section-title" style="margin-top:18px">Clientes específicos</div>
     <div class="search-bar">${ICONS.search}<input placeholder="Buscar cliente..." oninput="filterAssignmentClients(this.value)"></div>
@@ -1442,6 +1363,16 @@ function filterAssignmentClients(q){
 }
 function saveTeamAssignments(userId){
   if(!isAdmin()||!userId)return;
+  const target=teamMembers.find(m=>m.user_id===userId);
+  state.permissions=state.permissions||{};
+  if(target?.role!=='admin'){
+    state.permissions[userId]={
+      addClients:!!$('#permAddClients')?.checked,
+      editClients:!!$('#permEditClients')?.checked,
+      deleteClients:!!$('#permDeleteClients')?.checked,
+      deleteVisits:!!$('#permDeleteVisits')?.checked
+    };
+  }
   state.companies.forEach(c=>{
     const checked=$(`[data-company-assignment="${c.id}"]`)?.checked;
     const ids=new Set(c.assignedUserIds||[]);
@@ -1454,7 +1385,7 @@ function saveTeamAssignments(userId){
     checked?ids.add(userId):ids.delete(userId);
     c.assignedUserIds=[...ids];
   });
-  save();render();toast('Asignaciones guardadas.');
+  save();render();toast('Asignaciones y permisos guardados.');
 }
 function commercialStats(member){
   const acts=state.activities.filter(a=>a.assignedUserId===member.user_id);
@@ -1624,7 +1555,7 @@ async function enterApp(user){
     cloudReady=true;
     await saveCloudState();
   }
-  cloudReady=true; $('#authScreen').classList.add('hidden'); render(); setSyncStatus('Guardado'); startCloudPolling(); setTimeout(async()=>{await notifyNewAssignments();await notifyNewMessages();updateChatBadge();},500);
+  cloudReady=true; $('#authScreen').classList.add('hidden'); render(); setSyncStatus('Guardado'); startCloudPolling(); setTimeout(async()=>{await notifyNewAssignments();},500);
 }
 async function signOutUser(){if(!supabaseClient)return;await saveCloudState();await supabaseClient.auth.signOut();location.reload();}
 
