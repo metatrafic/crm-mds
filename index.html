@@ -234,6 +234,21 @@ button,input,select,textarea{font:inherit;color:inherit}
 .offline-pill.show{display:block}
 @media(display-mode:standalone){.install-banner{display:none!important}}
 
+
+.role-badge{display:inline-flex;border-radius:999px;padding:4px 8px;font-family:var(--mono);font-size:8px;letter-spacing:.7px;text-transform:uppercase;background:var(--accent-soft);color:var(--accent)}
+.role-badge.admin{background:var(--ink);color:#fff}
+.assign-list{max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:var(--radius-sm);background:#fff}
+.assign-row{display:flex;align-items:flex-start;gap:10px;padding:11px;border-bottom:1px solid var(--line)}
+.assign-row:last-child{border-bottom:0}
+.assign-row input{margin-top:3px}
+.assign-row-content{min-width:0;flex:1}
+.assign-row-title{font-weight:600;font-size:13px}
+.assign-row-sub{font-family:var(--mono);font-size:8.5px;color:var(--ink-3);margin-top:2px}
+.stats-table{width:100%;border-collapse:collapse;font-size:12px}
+.stats-table th,.stats-table td{padding:9px 7px;border-bottom:1px solid var(--line);text-align:right}
+.stats-table th:first-child,.stats-table td:first-child{text-align:left}
+.stats-table th{font-family:var(--mono);font-size:8px;letter-spacing:.6px;text-transform:uppercase;color:var(--ink-3)}
+
 </style>
 </head>
 <body>
@@ -316,19 +331,44 @@ const ICONS={
 };
 const NAV_ITEMS=[['inicio','home','Inicio'],['clientes','users','Clientes'],['agenda','agenda','Agenda'],['calendario','calendar','Calendario'],['historial','history','Historial'],['ajustes','settings','Ajustes']];
 
-const DEFAULT_STATE=()=>({settings:{commercial:'',inactiveDays:90},companies:[{id:uid(),name:'Grupo MDS',color:'#1C6FB8'}],clients:[],activities:[]});
-let state=loadLocal(), supabaseClient=null, currentUser=null, cloudSaveTimer=null, cloudReady=false;
-function loadLocal(){try{const d=JSON.parse(localStorage.getItem(LS)); if(d&&d.companies&&d.clients&&d.activities) return d;}catch(e){} return DEFAULT_STATE();}
+const DEFAULT_STATE=()=>({settings:{commercial:'',inactiveDays:90},companies:[{id:uid(),name:'Grupo MDS',color:'#1C6FB8',assignedUserIds:[]}],clients:[],activities:[]});
+let state=loadLocal(), supabaseClient=null, currentUser=null, currentProfile=null, teamMembers=[], cloudSaveTimer=null, cloudReady=false;
+function loadLocal(){try{const d=JSON.parse(localStorage.getItem(LS)); if(d&&d.companies&&d.clients&&d.activities) return normalizeState(d);}catch(e){} return DEFAULT_STATE();}
+function normalizeState(d){
+  d.settings=d.settings||{commercial:'',inactiveDays:90};
+  d.companies=(d.companies||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[]}));
+  d.clients=(d.clients||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[]}));
+  d.activities=(d.activities||[]).map(a=>({...a,assignedUserId:a.assignedUserId||''}));
+  return d;
+}
+function isAdmin(){return currentProfile?.role==='admin'}
+function memberName(id){const m=teamMembers.find(x=>x.user_id===id);return m?.display_name||m?.email||'Sin asignar'}
+function visibleCompanies(){
+  if(isAdmin())return state.companies;
+  return state.companies.filter(c=>(c.assignedUserIds||[]).includes(currentUser?.id));
+}
+function canSeeCompany(id){return isAdmin()||visibleCompanies().some(c=>c.id===id)}
+function visibleClients(){
+  if(isAdmin())return state.clients;
+  const companyIds=new Set(visibleCompanies().map(c=>c.id));
+  return state.clients.filter(c=>(c.assignedUserIds||[]).includes(currentUser?.id)||companyIds.has(c.companyId));
+}
+function canSeeClient(id){return isAdmin()||visibleClients().some(c=>c.id===id)}
+function visibleActivities(){
+  if(isAdmin())return state.activities;
+  return state.activities.filter(a=>a.assignedUserId===currentUser?.id || (!a.assignedUserId&&canSeeClient(a.clientId)));
+}
 function save(){
   localStorage.setItem(LS,JSON.stringify(state));
-  if(!cloudReady||!currentUser||!supabaseClient)return;
+  if(!cloudReady||!currentUser||!supabaseClient||!currentProfile)return;
   setSyncStatus('Sincronizando');
   clearTimeout(cloudSaveTimer);
   cloudSaveTimer=setTimeout(saveCloudState,450);
 }
 async function saveCloudState(){
-  if(!cloudReady||!currentUser||!supabaseClient)return;
-  const {error}=await supabaseClient.from('crm_states').upsert({user_id:currentUser.id,data:state,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+  if(!cloudReady||!currentUser||!supabaseClient||!currentProfile)return;
+  const payload={workspace_id:currentProfile.workspace_id,data:state,updated_at:new Date().toISOString(),updated_by:currentUser.id};
+  const {error}=await supabaseClient.from('crm_workspace_states').upsert(payload,{onConflict:'workspace_id'});
   if(error){setSyncStatus('Error de sincronización',true); console.error(error); return;}
   setSyncStatus('Guardado');
 }
@@ -399,10 +439,10 @@ function empty(icon,title,sub){
 
 /* ---------- Inicio ---------- */
 function renderInicio(){
-  const pend=state.activities.filter(a=>a.status==='pending'); const done=state.activities.filter(a=>a.status==='done'); const hoy=pend.filter(a=>a.date===today());
+  const allActs=visibleActivities(); const pend=allActs.filter(a=>a.status==='pending'); const done=allActs.filter(a=>a.status==='done'); const hoy=pend.filter(a=>a.date===today());
   $('#view-inicio').innerHTML=`
  <div class="hero"><div class="hero-label">Resumen comercial</div><div class="hero-num">${pend.length}</div><div class="hero-note">Actividades pendientes</div></div>
- <div class="grid2"><div class="stat"><b>${state.clients.length}</b><span>Clientes</span></div><div class="stat"><b>${hoy.length}</b><span>Hoy</span></div><div class="stat"><b>${done.length}</b><span>Realizadas</span></div><div class="stat"><b>${state.companies.length}</b><span>Empresas</span></div></div>
+ <div class="grid2"><div class="stat"><b>${visibleClients().length}</b><span>Clientes</span></div><div class="stat"><b>${hoy.length}</b><span>Hoy</span></div><div class="stat"><b>${done.length}</b><span>Realizadas</span></div><div class="stat"><b>${visibleCompanies().length}</b><span>Empresas</span></div></div>
  <div class="disclosure-group">
    ${disclosure('pendBlock','Pendientes',pend.length,()=>cards(pend.slice().sort(sortDate),true))}
    ${disclosure('hoyBlock','Visitas para hoy',hoy.length,()=>cards(hoy.slice().sort(sortDate),true))}
@@ -429,7 +469,7 @@ function activityCard(a, detail=false){
       </div>
       <div class="card-side">${statusBadge(a.status)}${ICONS.chevron}</div>
     </div>
-    ${detail?`<div class="chips">${a.mode?`<span class="chip">${esc(a.mode)}</span>`:''}${a.todo?`<span class="chip">A tratar: ${esc(a.todo.slice(0,58))}</span>`:''}${a.doneText?`<span class="chip">Tratado: ${esc(a.doneText.slice(0,58))}</span>`:''}</div>`:''}
+    ${detail?`<div class="chips">${a.mode?`<span class="chip">${esc(a.mode)}</span>`:''}${a.assignedUserId?`<span class="chip">Comercial: ${esc(memberName(a.assignedUserId))}</span>`:''}${a.todo?`<span class="chip">A tratar: ${esc(a.todo.slice(0,58))}</span>`:''}${a.doneText?`<span class="chip">Tratado: ${esc(a.doneText.slice(0,58))}</span>`:''}</div>`:''}
   </div>`;
 }
 function sortDate(a,b){return ((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||''))} function sortDateDesc(a,b){return -sortDate(a,b)}
@@ -437,7 +477,7 @@ function sortDate(a,b){return ((a.date||'')+(a.time||'')).localeCompare((b.date|
 /* ---------- Clientes ---------- */
 function renderClientes(){
   const q=$('#clientSearch')?.value||''; const imp=$('#impFilter')?.value||'';
-  let arr=state.clients.filter(c=>(selectedCompany==='all'||c.companyId===selectedCompany)&&matchesClient(c,q));
+  let arr=visibleClients().filter(c=>(selectedCompany==='all'||c.companyId===selectedCompany)&&matchesClient(c,q));
   if(imp)arr=arr.filter(c=>(c.importance||'')===imp);
   arr.sort((a,b)=>(company(a.companyId).name.localeCompare(company(b.companyId).name)||((a.order??999999)-(b.order??999999))||String(a.fiscalName).localeCompare(String(b.fiscalName))));
   const filtersOpen=!!$('#clientFilters') && !$('#clientFilters').classList.contains('hidden');
@@ -463,21 +503,25 @@ function clientCard(c){
 }
 
 /* ---------- Agenda / Historial ---------- */
-function renderAgenda(){const arr=state.activities.filter(a=>a.status==='pending').sort(sortDate); $('#view-agenda').innerHTML=`<div class="section-title">Agenda</div><div class="list-count">${arr.length} pendiente${arr.length===1?'':'s'}</div><div class="list">${cards(arr,true)}</div>`}
-function renderHistorial(){const arr=state.activities.slice().sort(sortDateDesc); $('#view-historial').innerHTML=`<div class="section-title">Historial</div><div class="list-count">${arr.length} registro${arr.length===1?'':'s'}</div><div class="list">${cards(arr,true)}</div>`}
+function renderAgenda(){const arr=visibleActivities().filter(a=>a.status==='pending').sort(sortDate); $('#view-agenda').innerHTML=`<div class="section-title">Agenda</div><div class="list-count">${arr.length} pendiente${arr.length===1?'':'s'}</div><div class="list">${cards(arr,true)}</div>`}
+function renderHistorial(){const arr=visibleActivities().slice().sort(sortDateDesc); $('#view-historial').innerHTML=`<div class="section-title">Historial</div><div class="list-count">${arr.length} registro${arr.length===1?'':'s'}</div><div class="list">${cards(arr,true)}</div>`}
 
 /* ---------- Calendario ---------- */
 function renderCalendar(){
   const y=calDate.getFullYear(), m=calDate.getMonth(); const first=new Date(y,m,1); const start=new Date(first); start.setDate(first.getDate()-((first.getDay()+6)%7)); const cells=[];
-  for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i); const iso=d.toISOString().slice(0,10); const acts=state.activities.filter(a=>a.date===iso); const colors=[...new Set(acts.map(a=>company(a.companyId).color))]; cells.push(`<div class="day ${d.getMonth()!==m?'out':''} ${iso===today()?'today':''}" onclick="openDay('${iso}')"><div class="day-num">${d.getDate()}</div><div class="points">${colors.map(c=>`<span class="point" style="background:${c}"></span>`).join('')}</div></div>`)}
+  for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i); const iso=d.toISOString().slice(0,10); const acts=visibleActivities().filter(a=>a.date===iso); const colors=[...new Set(acts.map(a=>company(a.companyId).color))]; cells.push(`<div class="day ${d.getMonth()!==m?'out':''} ${iso===today()?'today':''}" onclick="openDay('${iso}')"><div class="day-num">${d.getDate()}</div><div class="points">${colors.map(c=>`<span class="point" style="background:${c}"></span>`).join('')}</div></div>`)}
   $('#view-calendario').innerHTML=`<div class="calendar-head"><button class="icon-btn" onclick="calDate.setMonth(calDate.getMonth()-1);renderCalendar()">${ICONS.chevronLeft}</button><div class="calendar-title">${calDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'})}</div><button class="icon-btn" onclick="calDate.setMonth(calDate.getMonth()+1);renderCalendar()">${ICONS.chevron}</button></div><div class="cal"><div class="cal-week">${['L','M','X','J','V','S','D'].map(x=>`<div>${x}</div>`).join('')}</div><div class="cal-grid">${cells.join('')}</div></div>`;
 }
 
 /* ---------- Ajustes ---------- */
 function renderAjustes(){
-  const opts=state.companies.map(c=>`<option value="${c.id}" ${selectedCompany===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
+  const opts=visibleCompanies().map(c=>`<option value="${c.id}" ${selectedCompany===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
   $('#view-ajustes').innerHTML=`<div class="section-title">Ajustes</div>
-  <div class="card"><div class="settings-card-title">${ICONS.users}<span>Sesión</span></div><div class="user-card" style="margin-top:10px">${esc(currentUser?.email||'')}</div><button class="btn full" style="margin-top:12px;margin-bottom:0" onclick="signOutUser()">Cerrar sesión</button></div>
+  <div class="card"><div class="settings-card-title">${ICONS.users}<span>Sesión</span></div><div class="user-card" style="margin-top:10px">${esc(currentProfile?.display_name||currentUser?.email||'')} · <span class="role-badge ${isAdmin()?'admin':''}">${isAdmin()?'Administrador':'Comercial'}</span></div><div class="small" style="margin-top:8px">${esc(currentUser?.email||'')}</div><button class="btn full" style="margin-top:12px;margin-bottom:0" onclick="signOutUser()">Cerrar sesión</button></div>
+  ${isAdmin()?`<div class="settings-group"><div class="section-title">Administración</div>
+    <button class="btn full primary" onclick="openTeamAdmin()">${ICONS.users}<span>Equipo y asignaciones</span></button>
+    <button class="btn full" onclick="openCommercialStats()">${ICONS.history}<span>Estadísticas comerciales</span></button>
+  </div>`:''}
   <div class="card" id="pwaSettingsCard"><div class="settings-card-title">${ICONS.download}<span>Aplicación móvil</span></div><div class="small" style="margin-top:10px" id="pwaSettingsText">Puedes instalar CRM MDS en la pantalla de inicio.</div><button class="btn full primary" id="pwaSettingsButton" style="margin-top:12px;margin-bottom:0" onclick="requestAppInstall()">${ICONS.download}<span>Instalar aplicación</span></button></div>
   <div class="card"><div class="settings-card-title">${ICONS.building}<span>Empresa activa</span></div><div class="field" style="margin-top:12px;margin-bottom:0"><select onchange="selectedCompany=this.value;render()"><option value="all" ${selectedCompany==='all'?'selected':''}>Todas las empresas</option>${opts}</select></div></div>
   <div class="settings-group"><div class="section-title">Copias de seguridad</div>
@@ -493,12 +537,12 @@ function renderAjustes(){
       <div id="importResult"></div>
     </div>
   </div>
-  <div class="settings-group"><div class="section-title">Avanzado</div>
+  ${isAdmin()?`<div class="settings-group"><div class="section-title">Avanzado</div>
     <button class="btn full" onclick="openCompaniesAdmin()">${ICONS.building}<span>Administrar empresas</span></button>
     <button class="btn full danger" onclick="borrarTodo()">${ICONS.trash}<span>Borrar todos los datos</span></button>
-  </div>`;
+  </div>`:''}`;
 }
-async function borrarTodo(){
+async function borrarTodo(){if(!isAdmin())return;
   const ok=await showConfirm('Borrar todos los datos','Se eliminarán todas las empresas, clientes y visitas guardadas en este dispositivo. Esta acción no se puede deshacer.');
   if(ok){localStorage.removeItem(LS); location.reload();}
 }
@@ -508,7 +552,7 @@ function openSheet(title,sub,html){$('#sheetTitle').textContent=title;$('#sheetS
 function closeSheet(){$('#sheet').classList.remove('show');activityEditId=null}
 
 function openClient(id){
-  const c=client(id); if(!c)return;
+  const c=client(id); if(!c||!canSeeClient(id))return;
   if(c.alertMsg) setTimeout(()=>showNotice('Aviso de este cliente',c.alertMsg),150);
   const co=company(c.companyId); const acts=state.activities.filter(a=>a.clientId===id).sort(sortDateDesc); const lc=lastContact(id);
   openSheet(c.fiscalName||c.commercialName||'Cliente',co.name,`<div class="card">
@@ -547,8 +591,8 @@ function openActivity(id=null, preClient=null){
   setTimeout(()=>{bindActivityForm(); if(clientId) selectClientForActivity(clientId,false);},0);
 }
 function activityForm(a={}, companyId='', clientId=''){
-  const companies=state.companies.map(c=>`<option value="${c.id}" ${companyId===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
-  return `<div class="field"><label>Empresa</label><select id="actCompany"><option value="">Selecciona empresa</option>${companies}</select></div><div class="field"><label>Cliente</label><input id="clientQuery" placeholder="Escribe para buscar o elige de la lista"><div id="clientPick" class="client-picker-list"></div><input type="hidden" id="actClient" value="${esc(clientId)}"></div><div id="clientWarning"></div><div class="field"><label>Tipo</label><select id="actType"><option value="first">Primera visita</option><option value="followup">Seguimiento</option></select></div><div id="parentWrap" class="field hidden"><label>Visita anterior obligatoria</label><select id="actParent"></select></div><div class="field"><label>Estado</label><select id="actStatus"><option value="pending">Pendiente</option><option value="done">Realizada</option><option value="cancelled">Cancelada</option></select></div><div class="grid2" style="margin-bottom:0"><div class="field"><label>Fecha</label><input type="date" id="actDate" value="${esc(a.date||today())}"></div><div class="field"><label>Hora</label><input type="time" id="actTime" value="${esc(a.time||'09:00')}"></div></div><div class="field"><label>Modalidad</label><select id="actMode"><option>Presencial</option><option>Telefónica</option><option>Videollamada</option><option>Email</option></select></div><div class="field"><label>Lugar</label><input id="actPlace" value="${esc(a.place||'')}"><div id="mapsLink" style="margin-top:6px"></div></div><div id="dynamicFields"></div><button class="btn full primary" id="saveActivityBtn" type="button">${ICONS.check}<span>Guardar actividad</span></button>`;
+  const companies=visibleCompanies().map(c=>`<option value="${c.id}" ${companyId===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
+  return `<div class="field"><label>Empresa</label><select id="actCompany"><option value="">Selecciona empresa</option>${companies}</select></div>${isAdmin()?`<div class="field"><label>Comercial asignado</label><select id="actAssignee"><option value="">Sin asignar</option>${teamMembers.filter(m=>m.role==='commercial').map(m=>`<option value="${m.user_id}" ${(a.assignedUserId||'')===m.user_id?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>`:''}<div class="field"><label>Cliente</label><input id="clientQuery" placeholder="Escribe para buscar o elige de la lista"><div id="clientPick" class="client-picker-list"></div><input type="hidden" id="actClient" value="${esc(clientId)}"></div><div id="clientWarning"></div><div class="field"><label>Tipo</label><select id="actType"><option value="first">Primera visita</option><option value="followup">Seguimiento</option></select></div><div id="parentWrap" class="field hidden"><label>Visita anterior obligatoria</label><select id="actParent"></select></div><div class="field"><label>Estado</label><select id="actStatus"><option value="pending">Pendiente</option><option value="done">Realizada</option><option value="cancelled">Cancelada</option></select></div><div class="grid2" style="margin-bottom:0"><div class="field"><label>Fecha</label><input type="date" id="actDate" value="${esc(a.date||today())}"></div><div class="field"><label>Hora</label><input type="time" id="actTime" value="${esc(a.time||'09:00')}"></div></div><div class="field"><label>Modalidad</label><select id="actMode"><option>Presencial</option><option>Telefónica</option><option>Videollamada</option><option>Email</option></select></div><div class="field"><label>Lugar</label><input id="actPlace" value="${esc(a.place||'')}"><div id="mapsLink" style="margin-top:6px"></div></div><div id="dynamicFields"></div><button class="btn full primary" id="saveActivityBtn" type="button">${ICONS.check}<span>Guardar actividad</span></button>`;
 }
 function bindActivityForm(){
   $('#actCompany')?.addEventListener('change',()=>{
@@ -572,11 +616,11 @@ function refreshClientPicker(){
 function selectClientForActivity(id, warn=true){const c=client(id); if(!c)return; $('#actClient').value=id; $('#actCompany').value=c.companyId; $('#clientQuery').value=c.fiscalName||c.commercialName||''; $('#actPlace').value=$('#actPlace').value||c.address||''; $('#mapsLink').innerHTML=c.address?`<a target="_blank" class="small" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.address)}">Abrir en Google Maps</a>`:''; if(c.alertMsg&&warn)showNotice('Aviso de este cliente',c.alertMsg); refreshClientPicker(); refreshActivityForm();}
 function refreshActivityForm(){const cid=$('#actClient')?.value; const a=activityEditId?state.activities.find(x=>x.id===activityEditId):null; if(cid&&!a){$('#actType').value=hasFirst(cid)?'followup':'first'} const type=$('#actType')?.value; const status=$('#actStatus')?.value; $('#parentWrap').classList.toggle('hidden',type!=='followup'); if(type==='followup'&&cid){let parents=state.activities.filter(x=>x.clientId===cid&&x.id!==activityEditId&&canBeParent(x,activityEditId)); const cur=a?.parentId; if(cur&&!parents.some(p=>p.id===cur)){const p=state.activities.find(x=>x.id===cur);if(p)parents.unshift(p)} $('#actParent').innerHTML='<option value="">Selecciona visita anterior</option>'+parents.map(p=>`<option value="${p.id}" ${cur===p.id?'selected':''}>${fmtDate(p.date)} ${p.time||''} · ${p.type==='first'?'Primera':'Seguimiento'} · ${esc((p.todo||p.doneText||'').slice(0,55))}</option>`).join('');}
  let dyn=''; const parent=state.activities.find(x=>x.id===$('#actParent')?.value); const inherited=parent?.todo||''; if(type==='followup'&&inherited) dyn+=`<div class="card"><div class="section-title">Temas que debes tratar en esta visita</div><div class="small">${esc(inherited)}</div><label class="small" style="display:block;margin-top:8px"><input type="checkbox" id="inheritedTreated" ${a?.inheritedTreated?'checked':''}> Marcar como tratado</label></div>`; if(status==='pending') dyn+=`<div class="field"><label>Qué debo tratar en esta visita</label><textarea id="actTodo">${esc(a?.todo||inherited||'')}</textarea></div>`; if(status==='done') dyn+=`<div class="field"><label>Qué he tratado</label><textarea id="actDone">${esc(a?.doneText||'')}</textarea></div><label class="small"><input type="checkbox" id="createNext" ${a?.createNext?'checked':''} onchange="refreshActivityForm()"> Programar siguiente seguimiento</label>`; if(status==='done'&&$('#createNext')?.checked) dyn+=`<div class="field"><label>Qué quiero tratar en el siguiente seguimiento</label><textarea id="nextTodo">${esc(a?.nextTodo||'')}</textarea></div><div class="grid2" style="margin-bottom:0"><div class="field"><label>Fecha seguimiento</label><input type="date" id="nextDate"></div><div class="field"><label>Hora</label><input type="time" id="nextTime" value="09:00"></div></div>`; $('#dynamicFields').innerHTML=dyn;}
-function saveActivity(){const cid=$('#actClient').value, co=$('#actCompany').value, type=$('#actType').value, status=$('#actStatus').value; if(!co)return toast('Selecciona una empresa.'); if(!cid)return toast('Selecciona un cliente.'); const selectedClient=client(cid); if(!selectedClient||selectedClient.companyId!==co)return toast('El cliente debe pertenecer a la empresa seleccionada.'); if(type==='first'&&hasFirst(cid)&&!(activityEditId&&state.activities.find(a=>a.id===activityEditId)?.type==='first'))return toast('Este cliente ya tiene una primera visita. Debes crear un seguimiento.'); if(type==='followup'&&!$('#actParent').value)return toast('Un seguimiento debe estar vinculado a una visita anterior.'); if(type==='followup'&&state.activities.some(a=>a.id!==activityEditId&&a.parentId===$('#actParent').value))return toast('Esa visita ya tiene seguimiento. Elige otra visita anterior.'); if(status==='pending'&&type==='followup'&&overlaps($('#actDate').value,$('#actTime').value,activityEditId))return toast('Ya existe un seguimiento pendiente a esa hora.'); let a=activityEditId?state.activities.find(x=>x.id===activityEditId):null; if(!a){a={id:uid(),createdAt:new Date().toISOString()};state.activities.push(a)} Object.assign(a,{companyId:co,clientId:cid,type,status,parentId:type==='followup'?$('#actParent').value:'',date:$('#actDate').value,time:$('#actTime').value,mode:$('#actMode').value,place:$('#actPlace').value,todo:$('#actTodo')?.value||'',doneText:$('#actDone')?.value||'',inheritedTreated:!!$('#inheritedTreated')?.checked}); if($('#createNext')?.checked){const nextTodo=$('#nextTodo')?.value||''; if(nextTodo){state.activities.push({id:uid(),createdAt:new Date().toISOString(),companyId:co,clientId:cid,type:'followup',status:'pending',parentId:a.id,date:$('#nextDate')?.value||'',time:$('#nextTime')?.value||'',mode:'Presencial',place:a.place,todo:nextTodo,doneText:''});}} save();closeSheet();render();toast('Visita guardada.');}
+function saveActivity(){const cid=$('#actClient').value, co=$('#actCompany').value, type=$('#actType').value, status=$('#actStatus').value; if(!co)return toast('Selecciona una empresa.'); if(!cid)return toast('Selecciona un cliente.'); const selectedClient=client(cid); if(!selectedClient||selectedClient.companyId!==co)return toast('El cliente debe pertenecer a la empresa seleccionada.'); if(type==='first'&&hasFirst(cid)&&!(activityEditId&&state.activities.find(a=>a.id===activityEditId)?.type==='first'))return toast('Este cliente ya tiene una primera visita. Debes crear un seguimiento.'); if(type==='followup'&&!$('#actParent').value)return toast('Un seguimiento debe estar vinculado a una visita anterior.'); if(type==='followup'&&state.activities.some(a=>a.id!==activityEditId&&a.parentId===$('#actParent').value))return toast('Esa visita ya tiene seguimiento. Elige otra visita anterior.'); if(status==='pending'&&type==='followup'&&overlaps($('#actDate').value,$('#actTime').value,activityEditId))return toast('Ya existe un seguimiento pendiente a esa hora.'); let a=activityEditId?state.activities.find(x=>x.id===activityEditId):null; if(!a){a={id:uid(),createdAt:new Date().toISOString()};state.activities.push(a)} Object.assign(a,{companyId:co,clientId:cid,assignedUserId:isAdmin()?($('#actAssignee')?.value||''):(currentUser?.id||''),type,status,parentId:type==='followup'?$('#actParent').value:'',date:$('#actDate').value,time:$('#actTime').value,mode:$('#actMode').value,place:$('#actPlace').value,todo:$('#actTodo')?.value||'',doneText:$('#actDone')?.value||'',inheritedTreated:!!$('#inheritedTreated')?.checked}); if($('#createNext')?.checked){const nextTodo=$('#nextTodo')?.value||''; if(nextTodo){state.activities.push({id:uid(),createdAt:new Date().toISOString(),companyId:co,clientId:cid,assignedUserId:isAdmin()?($('#actAssignee')?.value||''):(currentUser?.id||''),type:'followup',status:'pending',parentId:a.id,date:$('#nextDate')?.value||'',time:$('#nextTime')?.value||'',mode:'Presencial',place:a.place,todo:nextTodo,doneText:''});}} save();closeSheet();render();toast('Visita guardada.');}
 function overlaps(date,time,ignore){return date&&time&&state.activities.some(a=>a.id!==ignore&&a.status==='pending'&&a.type==='followup'&&a.date===date&&a.time===time)}
 
 function openActivityDetail(id){
-  const a=state.activities.find(x=>x.id===id); if(!a)return; const co=company(a.companyId);
+  const a=state.activities.find(x=>x.id===id); if(!a||(!isAdmin()&&!visibleActivities().some(x=>x.id===id)))return; const co=company(a.companyId);
   openSheet(a.type==='first'?'Primera visita':'Seguimiento',clientName(a.clientId),`<div class="card">
     <div class="row" style="margin-bottom:12px;align-items:center"><span class="card-eyebrow" style="margin-bottom:0"><span class="dot" style="background:${co.color}"></span>${esc(co.name)}</span>${statusBadge(a.status)}</div>
     <div class="info-grid">
@@ -602,7 +646,7 @@ async function deleteActivity(id){
 function openDay(iso){const arr=state.activities.filter(a=>a.date===iso).sort(sortDate); openSheet('Visitas del día',fmtDate(iso),`<div class="list">${cards(arr,true)}</div>`)}
 
 /* ---------- Empresas ---------- */
-function openCompaniesAdmin(){openSheet('Administrar empresas','Configuración avanzada',`<div id="companiesList">${companiesHTML()}</div><div class="card"><div class="settings-card-title" style="margin-bottom:12px">${ICONS.plus}<span>Nueva empresa</span></div><div class="field"><label>Nombre</label><input id="newCompanyName" placeholder="Nombre"></div><div class="field"><label>Color</label><input id="newCompanyColor" type="color" value="#1C6FB8"></div><button class="btn full primary" onclick="addCompany()">${ICONS.plus}<span>Añadir empresa</span></button></div>`)}
+function openCompaniesAdmin(){if(!isAdmin())return;openSheet('Administrar empresas','Configuración avanzada',`<div id="companiesList">${companiesHTML()}</div><div class="card"><div class="settings-card-title" style="margin-bottom:12px">${ICONS.plus}<span>Nueva empresa</span></div><div class="field"><label>Nombre</label><input id="newCompanyName" placeholder="Nombre"></div><div class="field"><label>Color</label><input id="newCompanyColor" type="color" value="#1C6FB8"></div><button class="btn full primary" onclick="addCompany()">${ICONS.plus}<span>Añadir empresa</span></button></div>`)}
 function companiesHTML(){return state.companies.map(c=>`<div class="card"><div class="row"><div><div class="card-title"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}</div><div class="card-sub">${state.clients.filter(x=>x.companyId===c.id).length} clientes</div></div></div><div class="grid2" style="margin-top:8px;margin-bottom:0"><input id="name_${c.id}" value="${esc(c.name)}"><input id="color_${c.id}" type="color" value="${c.color}"></div><div class="actions"><button class="btn" onclick="saveCompany('${c.id}')">${ICONS.check}<span>Guardar</span></button><button class="btn danger" onclick="deleteCompany('${c.id}')">${ICONS.trash}<span>Eliminar</span></button></div></div>`).join('')}
 function addCompany(){const name=$('#newCompanyName').value.trim(); if(!name)return; state.companies.push({id:uid(),name,color:$('#newCompanyColor').value}); save(); openCompaniesAdmin(); render(); toast('Empresa añadida.');}
 function saveCompany(id){const c=company(id); c.name=$('#name_'+id).value; c.color=$('#color_'+id).value; save(); openCompaniesAdmin(); render(); toast('Empresa actualizada.');}
@@ -734,6 +778,69 @@ function exportClientsCSV(){const rows=[['Empresa','Código','Nombre fiscal','No
 function download(name,content,type){const blob=new Blob([content],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
 
 
+
+/* ---------- Administración de equipo ---------- */
+function memberOptions(selected=''){
+  return teamMembers.filter(m=>m.role==='commercial').map(m=>`<option value="${m.user_id}" ${selected===m.user_id?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('');
+}
+function openTeamAdmin(selectedUserId=''){
+  if(!isAdmin())return;
+  const commercials=teamMembers.filter(m=>m.role==='commercial');
+  const selected=selectedUserId||commercials[0]?.user_id||'';
+  const person=teamMembers.find(m=>m.user_id===selected);
+  const companies=state.companies.map(c=>`<label class="assign-row"><input type="checkbox" data-company-assignment="${c.id}" ${(c.assignedUserIds||[]).includes(selected)?'checked':''}><span class="assign-row-content"><span class="assign-row-title">${esc(c.name)}</span><span class="assign-row-sub">${state.clients.filter(x=>x.companyId===c.id).length} clientes</span></span></label>`).join('');
+  const clients=state.clients.slice().sort((a,b)=>clientName(a.id).localeCompare(clientName(b.id))).map(c=>`<label class="assign-row client-assignment-row"><input type="checkbox" data-client-assignment="${c.id}" ${(c.assignedUserIds||[]).includes(selected)?'checked':''}><span class="assign-row-content"><span class="assign-row-title">${esc(clientName(c.id))}</span><span class="assign-row-sub">${esc(company(c.companyId).name)}</span></span></label>`).join('');
+  openSheet('Equipo y asignaciones','Administrador',`
+    <div class="field"><label>Comercial</label><select id="teamSelectedUser" onchange="openTeamAdmin(this.value)">${commercials.map(m=>`<option value="${m.user_id}" ${m.user_id===selected?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>
+    ${person?`<div class="card"><div class="row"><div><div class="card-title">${esc(person.display_name||person.email)}</div><div class="card-sub">${esc(person.email||'')}</div></div><span class="role-badge">${esc(person.role)}</span></div></div>`:''}
+    <div class="section-title">Empresas asignadas</div>
+    <div class="assign-list">${companies||'<div class="pick-item">No hay empresas.</div>'}</div>
+    <div class="section-title" style="margin-top:18px">Clientes específicos</div>
+    <div class="search-bar">${ICONS.search}<input placeholder="Buscar cliente..." oninput="filterAssignmentClients(this.value)"></div>
+    <div class="assign-list" id="clientAssignmentList">${clients||'<div class="pick-item">No hay clientes.</div>'}</div>
+    <button class="btn full primary" style="margin-top:14px" onclick="saveTeamAssignments('${selected}')">${ICONS.check}<span>Guardar asignaciones</span></button>
+  `);
+}
+function filterAssignmentClients(q){
+  q=norm(q);
+  $$('.client-assignment-row').forEach(row=>row.classList.toggle('hidden',q&&!norm(row.textContent).includes(q)));
+}
+function saveTeamAssignments(userId){
+  if(!isAdmin()||!userId)return;
+  state.companies.forEach(c=>{
+    const checked=$(`[data-company-assignment="${c.id}"]`)?.checked;
+    const ids=new Set(c.assignedUserIds||[]);
+    checked?ids.add(userId):ids.delete(userId);
+    c.assignedUserIds=[...ids];
+  });
+  state.clients.forEach(c=>{
+    const checked=$(`[data-client-assignment="${c.id}"]`)?.checked;
+    const ids=new Set(c.assignedUserIds||[]);
+    checked?ids.add(userId):ids.delete(userId);
+    c.assignedUserIds=[...ids];
+  });
+  save();render();toast('Asignaciones guardadas.');
+}
+function commercialStats(member){
+  const acts=state.activities.filter(a=>a.assignedUserId===member.user_id);
+  const done=acts.filter(a=>a.status==='done');
+  const pending=acts.filter(a=>a.status==='pending');
+  const cancelled=acts.filter(a=>a.status==='cancelled');
+  const clients=new Set(acts.map(a=>a.clientId));
+  return {acts:acts.length,done:done.length,pending:pending.length,cancelled:cancelled.length,clients:clients.size};
+}
+function openCommercialStats(){
+  if(!isAdmin())return;
+  const commercials=teamMembers.filter(m=>m.role==='commercial');
+  const rows=commercials.map(m=>{const s=commercialStats(m);return `<tr><td>${esc(m.display_name||m.email)}</td><td>${s.pending}</td><td>${s.done}</td><td>${s.cancelled}</td><td>${s.clients}</td></tr>`}).join('');
+  const total=state.activities.length,done=state.activities.filter(a=>a.status==='done').length,pending=state.activities.filter(a=>a.status==='pending').length;
+  openSheet('Estadísticas comerciales','Resumen del equipo',`
+    <div class="grid2"><div class="stat"><b>${commercials.length}</b><span>Comerciales</span></div><div class="stat"><b>${total}</b><span>Visitas</span></div><div class="stat"><b>${pending}</b><span>Pendientes</span></div><div class="stat"><b>${done}</b><span>Realizadas</span></div></div>
+    <div class="card" style="overflow:auto"><table class="stats-table"><thead><tr><th>Comercial</th><th>Pend.</th><th>Hechas</th><th>Cancel.</th><th>Clientes</th></tr></thead><tbody>${rows||'<tr><td colspan="5">No hay comerciales.</td></tr>'}</tbody></table></div>
+    <div class="small">Las estadísticas se calculan con las visitas asignadas a cada comercial.</div>
+  `);
+}
+
 async function initApp(){
   const form=$('#authForm');
   form.addEventListener('submit',signInUser);
@@ -785,10 +892,25 @@ async function signInUser(e){
 }
 async function enterApp(user){
   currentUser=user; setSyncStatus('Cargando');
-  const {data,error}=await supabaseClient.from('crm_states').select('data').eq('user_id',user.id).maybeSingle();
-  if(error){$('#authError').textContent='No se han podido cargar los datos de la nube.';console.error(error);return;}
-  if(data?.data&&data.data.companies&&data.data.clients&&data.data.activities){state=data.data;localStorage.setItem(LS,JSON.stringify(state));}
-  else {state=loadLocal(); cloudReady=true; await saveCloudState();}
+  const {data:profile,error:profileError}=await supabaseClient.from('crm_members').select('user_id,workspace_id,role,display_name,email').eq('user_id',user.id).maybeSingle();
+  if(profileError||!profile){
+    $('#authError').textContent='Tu usuario no pertenece todavía al equipo CRM. Ejecuta el nuevo esquema SQL o pide al administrador que active tu cuenta.';
+    console.error(profileError);return;
+  }
+  currentProfile=profile;
+  const {data:members,error:membersError}=await supabaseClient.from('crm_members').select('user_id,workspace_id,role,display_name,email').eq('workspace_id',profile.workspace_id).order('display_name');
+  if(membersError){$('#authError').textContent='No se ha podido cargar el equipo.';console.error(membersError);return;}
+  teamMembers=members||[];
+  const {data,error}=await supabaseClient.from('crm_workspace_states').select('data').eq('workspace_id',profile.workspace_id).maybeSingle();
+  if(error){$('#authError').textContent='No se han podido cargar los datos compartidos.';console.error(error);return;}
+  if(data?.data&&data.data.companies&&data.data.clients&&data.data.activities){
+    state=normalizeState(data.data);localStorage.setItem(LS,JSON.stringify(state));
+  }else{
+    // Primera puesta en marcha: el administrador migra los datos locales existentes.
+    state=isAdmin()?loadLocal():DEFAULT_STATE();
+    cloudReady=true;
+    await saveCloudState();
+  }
   cloudReady=true; $('#authScreen').classList.add('hidden'); render(); setSyncStatus('Guardado');
 }
 async function signOutUser(){if(!supabaseClient)return;await saveCloudState();await supabaseClient.auth.signOut();location.reload();}
