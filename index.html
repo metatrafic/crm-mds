@@ -428,6 +428,15 @@ button,input,select,textarea{font:inherit;color:inherit}
   .top-action{width:36px;min-width:36px;height:34px}
 }
 
+
+/* v11: pedidos por correo, histórico y edición de comisiones */
+.order-card{border:1px solid var(--line);border-radius:12px;padding:13px;background:var(--surface);margin-bottom:9px}
+.order-card.sent{border-color:rgba(28,107,65,.24);background:linear-gradient(180deg,#fff 0%,var(--green-soft) 170%)}
+.order-title{font-size:13px;font-weight:700}
+.order-meta{font-family:var(--mono);font-size:8px;line-height:1.5;color:var(--ink-3);margin-top:4px}
+.order-body{font-size:12px;line-height:1.55;color:var(--ink-2);white-space:pre-wrap;margin-top:10px}
+.order-total{font-family:var(--mono);font-size:17px;font-weight:500;margin-top:8px}
+.company-email-note{font-family:var(--mono);font-size:8px;color:var(--ink-3);line-height:1.5;margin-top:6px}
 </style>
 </head>
 <body>
@@ -523,12 +532,12 @@ const ICONS={
 };
 const NAV_ITEMS=[['inicio','home','Inicio'],['clientes','users','Clientes'],['agenda','agenda','Agenda'],['calendario','calendar','Calendario'],['historial','history','Historial'],['ajustes','settings','Ajustes']];
 
-const DEFAULT_STATE=()=>({settings:{commercial:'',inactiveDays:90},companies:[{id:uid(),name:'Grupo MDS',color:'#1C6FB8',assignedUserIds:[]}],clients:[],activities:[],commissions:[],permissions:{}});
+const DEFAULT_STATE=()=>({settings:{commercial:'',inactiveDays:90},companies:[{id:uid(),name:'Grupo MDS',color:'#1C6FB8',assignedUserIds:[]}],clients:[],activities:[],commissions:[],orders:[],permissions:{}});
 let state=loadLocal(), supabaseClient=null, currentUser=null, currentProfile=null, teamMembers=[], cloudSaveTimer=null, cloudReady=false, cloudUpdatedAt='', cloudPollTimer=null, cloudPollBusy=false;
 function loadLocal(){try{const d=JSON.parse(localStorage.getItem(LS)); if(d&&d.companies&&d.clients&&d.activities) return normalizeState(d);}catch(e){} return DEFAULT_STATE();}
 function normalizeState(d){
   d.settings=d.settings||{commercial:'',inactiveDays:90};
-  d.companies=(d.companies||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[]}));
+  d.companies=(d.companies||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[],orderEmail:c.orderEmail||''}));
   d.clients=(d.clients||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[]}));
   d.activities=(d.activities||[]).map(a=>({...a,assignedUserId:a.assignedUserId||''}));
   d.commissions=(Array.isArray(d.commissions)?d.commissions:[]).map(c=>({
@@ -538,6 +547,7 @@ function normalizeState(d){
   }));
   d.permissions=d.permissions&&typeof d.permissions==='object'?d.permissions:{};
   d.commissions=(d.commissions||[]).map(c=>({...c,pdfPath:c.pdfPath||'',pdfName:c.pdfName||''}));
+  d.orders=Array.isArray(d.orders)?d.orders:[];
   return d;
 }
 function isAdmin(){return currentProfile?.role==='admin'}
@@ -822,12 +832,77 @@ function openClient(id){
     </div>
   </div>
   <button class="btn full primary" onclick="openActivity(null,'${id}')">${ICONS.plus}<span>Nueva visita</span></button>
+  <button class="btn full blue" onclick="openOrderForm('${id}')">${ICONS.mail}<span>Enviar pedido</span></button>
   ${hasPermission('editClients')?`<button class="btn full" onclick="editClient('${id}')">${ICONS.edit}<span>Editar cliente</span></button>`:''}
   ${hasPermission('deleteClients')?`<button class="btn full danger" onclick="deleteClient('${id}')">${ICONS.trash}<span>Eliminar cliente</span></button>`:''}
+  <div class="section-title" style="margin-top:18px">Pedidos</div>
+  <div class="list">${orderCardsForClient(id)}</div>
   <div class="section-title" style="margin-top:18px">Visitas</div>
   <div class="list">${cards(acts,true)}</div>`);
 }
 
+
+
+function ordersForClient(clientId){return state.orders.filter(o=>o.clientId===clientId).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)))}
+function ordersForCommercial(userId){return state.orders.filter(o=>o.userId===userId).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)))}
+function orderCard(o){
+  const c=client(o.clientId),co=company(o.companyId);
+  return `<div class="order-card sent">
+    <div class="row"><div><div class="order-title">${esc(o.subject||'Pedido')}</div><div class="order-meta">${fmtDate((o.createdAt||'').slice(0,10))} · ${esc(clientName(o.clientId))} · ${esc(co.name)} · ${esc(memberName(o.userId))}</div></div><span class="badge badge-done">Registrado</span></div>
+    <div class="order-body">${esc(o.body||'')}</div>
+    ${Number(o.total)>0?`<div class="order-total">${euro(o.total)}</div>`:''}
+    <div class="order-meta">Enviado a: ${esc(o.recipientEmail||'—')}</div>
+  </div>`;
+}
+function orderCardsForClient(clientId){
+  const list=ordersForClient(clientId);
+  return list.length?list.map(orderCard).join(''):empty('inbox','Sin pedidos','Todavía no hay pedidos registrados para este cliente.');
+}
+function openOrderForm(clientId){
+  const c=client(clientId);if(!c||!canSeeClient(clientId))return;
+  const co=company(c.companyId);
+  if(!co.orderEmail)return showNotice('Correo no configurado',`El administrador debe añadir el correo de pedidos en la empresa ${co.name}.`);
+  openSheet('Nuevo pedido',clientName(clientId),`
+    <div class="card"><div class="info-grid"><div class="info-row"><span>Empresa</span><b>${esc(co.name)}</b></div><div class="info-row"><span>Enviar a</span><b>${esc(co.orderEmail)}</b></div><div class="info-row"><span>Comercial</span><b>${esc(memberName(currentUser.id))}</b></div></div></div>
+    <div class="field"><label>Asunto</label><input id="orderSubject" value="Pedido · ${esc(clientName(clientId))}"></div>
+    <div class="field"><label>Detalle del pedido</label><textarea id="orderBody" placeholder="Productos, cantidades, referencias, observaciones..."></textarea></div>
+    <div class="field"><label>Importe estimado (€) — opcional</label><input id="orderTotal" type="number" min="0" step="0.01" inputmode="decimal"></div>
+    <button class="btn full primary" onclick="registerAndEmailOrder('${clientId}')">${ICONS.mail}<span>Registrar y abrir correo</span></button>
+    <div class="small">El pedido se guarda en el CRM antes de abrir la aplicación de correo. Revisa el mensaje y pulsa Enviar desde tu correo.</div>
+  `);
+}
+function registerAndEmailOrder(clientId){
+  const c=client(clientId);if(!c)return;
+  const co=company(c.companyId);
+  if(!co.orderEmail)return toast('La empresa no tiene correo de pedidos.');
+  const subject=$('#orderSubject').value.trim()||`Pedido · ${clientName(clientId)}`;
+  const detail=$('#orderBody').value.trim();
+  if(!detail)return toast('Escribe el contenido del pedido.');
+  const total=Number($('#orderTotal').value||0);
+  const commercial=memberName(currentUser.id);
+  const body=`Cliente: ${clientName(clientId)}
+CIF/NIF: ${c.nif||'—'}
+Comercial: ${commercial}
+Teléfono cliente: ${c.mobile||c.phone||'—'}
+Correo cliente: ${c.email||'—'}
+
+PEDIDO
+${detail}${total>0?`
+
+Importe estimado: ${euro(total)}`:''}`;
+  const order={id:uid(),clientId,companyId:c.companyId,userId:currentUser.id,recipientEmail:co.orderEmail,subject,body:detail,total,createdAt:new Date().toISOString(),status:'registered'};
+  state.orders.push(order);save();render();toast('Pedido registrado.');
+  const href=`mailto:${encodeURIComponent(co.orderEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href=href;
+}
+function openCommercialOrders(userId){
+  if(!isAdmin()&&userId!==currentUser.id)return;
+  const list=ordersForCommercial(userId);
+  const member=teamMembers.find(m=>m.user_id===userId);
+  openSheet('Pedidos registrados',member?.display_name||member?.email||'Comercial',`
+    <div class="list">${list.length?list.map(orderCard).join(''):empty('inbox','Sin pedidos','No hay pedidos registrados para este usuario.')}</div>
+  `);
+}
 
 function openNewClient(){
   if(!hasPermission('addClients'))return toast('No tienes permiso para añadir clientes.');
@@ -1072,10 +1147,10 @@ async function deleteActivity(id){
 function openDay(iso){const arr=state.activities.filter(a=>a.date===iso).sort(sortDate); openSheet('Visitas del día',fmtDate(iso),`<div class="list">${cards(arr,true)}</div>`)}
 
 /* ---------- Empresas ---------- */
-function openCompaniesAdmin(){if(!isAdmin())return;openSheet('Administrar empresas','Configuración avanzada',`<div id="companiesList">${companiesHTML()}</div><div class="card"><div class="settings-card-title" style="margin-bottom:12px">${ICONS.plus}<span>Nueva empresa</span></div><div class="field"><label>Nombre</label><input id="newCompanyName" placeholder="Nombre"></div><div class="field"><label>Color</label><input id="newCompanyColor" type="color" value="#1C6FB8"></div><button class="btn full primary" onclick="addCompany()">${ICONS.plus}<span>Añadir empresa</span></button></div>`)}
-function companiesHTML(){return state.companies.map(c=>`<div class="card"><div class="row"><div><div class="card-title"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}</div><div class="card-sub">${state.clients.filter(x=>x.companyId===c.id).length} clientes</div></div></div><div class="grid2" style="margin-top:8px;margin-bottom:0"><input id="name_${c.id}" value="${esc(c.name)}"><input id="color_${c.id}" type="color" value="${c.color}"></div><div class="actions"><button class="btn" onclick="saveCompany('${c.id}')">${ICONS.check}<span>Guardar</span></button><button class="btn danger" onclick="deleteCompany('${c.id}')">${ICONS.trash}<span>Eliminar</span></button></div></div>`).join('')}
-function addCompany(){const name=$('#newCompanyName').value.trim(); if(!name)return; state.companies.push({id:uid(),name,color:$('#newCompanyColor').value}); save(); openCompaniesAdmin(); render(); toast('Empresa añadida.');}
-function saveCompany(id){const c=company(id); c.name=$('#name_'+id).value; c.color=$('#color_'+id).value; save(); openCompaniesAdmin(); render(); toast('Empresa actualizada.');}
+function openCompaniesAdmin(){if(!isAdmin())return;openSheet('Administrar empresas','Configuración avanzada',`<div id="companiesList">${companiesHTML()}</div><div class="card"><div class="settings-card-title" style="margin-bottom:12px">${ICONS.plus}<span>Nueva empresa</span></div><div class="field"><label>Nombre</label><input id="newCompanyName" placeholder="Nombre"></div><div class="field"><label>Color</label><input id="newCompanyColor" type="color" value="#1C6FB8"></div><div class="field"><label>Correo de pedidos</label><input id="newCompanyOrderEmail" type="email" placeholder="pedidos@empresa.com"><div class="company-email-note">Los pedidos de los clientes de esta empresa se dirigirán a este correo.</div></div><button class="btn full primary" onclick="addCompany()">${ICONS.plus}<span>Añadir empresa</span></button></div>`)}
+function companiesHTML(){return state.companies.map(c=>`<div class="card"><div class="row"><div><div class="card-title"><span class="dot" style="background:${c.color}"></span>${esc(c.name)}</div><div class="card-sub">${state.clients.filter(x=>x.companyId===c.id).length} clientes</div></div></div><div class="grid2" style="margin-top:8px;margin-bottom:0"><input id="name_${c.id}" value="${esc(c.name)}"><input id="color_${c.id}" type="color" value="${c.color}"></div><div class="field" style="margin-top:9px;margin-bottom:0"><label>Correo de pedidos</label><input id="orderEmail_${c.id}" type="email" value="${esc(c.orderEmail||'')}" placeholder="pedidos@empresa.com"></div><div class="actions"><button class="btn" onclick="saveCompany('${c.id}')">${ICONS.check}<span>Guardar</span></button><button class="btn danger" onclick="deleteCompany('${c.id}')">${ICONS.trash}<span>Eliminar</span></button></div></div>`).join('')}
+function addCompany(){const name=$('#newCompanyName').value.trim(); if(!name)return; state.companies.push({id:uid(),name,color:$('#newCompanyColor').value,orderEmail:$('#newCompanyOrderEmail').value.trim(),assignedUserIds:[]}); save(); openCompaniesAdmin(); render(); toast('Empresa añadida.');}
+function saveCompany(id){const c=company(id); c.name=$('#name_'+id).value; c.color=$('#color_'+id).value; c.orderEmail=$('#orderEmail_'+id).value.trim(); save(); openCompaniesAdmin(); render(); toast('Empresa actualizada.');}
 async function deleteCompany(id){
   if(state.companies.length<2)return toast('Debe existir al menos una empresa.');
   if(state.clients.some(c=>c.companyId===id)||state.activities.some(a=>a.companyId===id))return toast('No puedes eliminar una empresa con clientes o visitas.');
@@ -1414,7 +1489,7 @@ function commissionCard(c,editable=false){
     <div class="row"><div><div class="commission-amount">${euro(c.amount)}</div><div class="commission-concept">${esc(c.concept||'Comisión')}</div><div class="commission-meta">${esc(user?.display_name||user?.email||'')} · ${fmtDate(c.dateFrom||c.date)}${c.dateTo&&c.dateTo!==(c.dateFrom||c.date)?' – '+fmtDate(c.dateTo):''} · ${c.status==='paid'?'Cobrada':'Pendiente de cobro'}</div></div>${statusBadge(c.status==='paid'?'done':'pending')}</div>
     ${c.notes?`<div class="small" style="margin-top:9px">${esc(c.notes)}</div>`:''}
     ${c.pdfPath?`<button class="commission-pdf" onclick="openCommissionPdf('${c.id}')">${ICONS.download}<span>${esc(c.pdfName||'Documento PDF')}</span></button>`:''}
-    ${editable?`<div class="actions"><button class="btn ${c.status==='paid'?'warn':'blue'}" onclick="toggleCommissionPaid('${c.id}')">${ICONS.check}<span>${c.status==='paid'?'Marcar pendiente':'Marcar cobrada'}</span></button><button class="btn danger" onclick="deleteCommission('${c.id}')">${ICONS.trash}<span>Eliminar</span></button></div>`:''}
+    ${editable?`<div class="actions"><button class="btn" onclick="openCommissionForm('${c.userId}','${c.id}')">${ICONS.edit}<span>Editar</span></button><button class="btn ${c.status==='paid'?'warn':'blue'}" onclick="toggleCommissionPaid('${c.id}')">${ICONS.check}<span>${c.status==='paid'?'Marcar pendiente':'Marcar cobrada'}</span></button><button class="btn danger" onclick="deleteCommission('${c.id}')">${ICONS.trash}<span>Eliminar</span></button></div>`:''}
   </div>`;
 }
 function openCommissionsAdmin(userId='all'){
@@ -1432,17 +1507,19 @@ function openCommissionsAdmin(userId='all'){
     <div>${list.length?list.sort((a,b)=>String(b.dateFrom||b.date).localeCompare(String(a.dateFrom||a.date))).map(c=>commissionCard(c,true)).join(''):empty('inbox','Sin comisiones','Añade la primera comisión del equipo.')}</div>
   `);
 }
-function openCommissionForm(userId=''){
+function openCommissionForm(userId='',commissionId=''){
   if(!isAdmin())return;
-  openSheet('Nueva comisión','Asignar retribución',`
+  const editing=commissionId?state.commissions.find(c=>c.id===commissionId):null;
+  if(editing)userId=editing.userId;
+  openSheet(editing?'Editar comisión':'Nueva comisión',editing?'Modificar retribución':'Asignar retribución',`
     <div class="field"><label>Usuario</label><select id="commissionUser"><option value="">Selecciona usuario</option>${assignableMembers().map(m=>`<option value="${m.user_id}" ${userId===m.user_id?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>
-    <div class="field"><label>Concepto</label><input id="commissionConcept" placeholder="Venta, objetivo mensual, renovación..."></div>
-    <div class="field"><label>Importe (€)</label><input id="commissionAmount" type="number" min="0" step="0.01" inputmode="decimal"></div>
-    <div class="grid2" style="margin-bottom:0"><div class="field"><label>Periodo desde</label><input id="commissionDateFrom" type="date" value="${today()}"></div><div class="field"><label>Periodo hasta</label><input id="commissionDateTo" type="date" value="${today()}"></div></div>
-    <div class="field"><label>Estado</label><select id="commissionStatus"><option value="unpaid">Pendiente de cobro</option><option value="paid">Cobrada</option></select></div>
-    <div class="field"><label>Notas</label><textarea id="commissionNotes"></textarea></div>
-    <div class="field"><label>Documento PDF (opcional)</label><label class="btn full">${ICONS.upload}<span>Seleccionar PDF</span><input id="commissionPdf" type="file" accept="application/pdf,.pdf" class="hidden" onchange="showCommissionPdfName(this)"></label><div id="commissionPdfName" class="file-selected"></div></div>
-    <button class="btn full primary" id="saveCommissionButton" onclick="saveCommission()">${ICONS.check}<span>Guardar comisión</span></button>
+    <div class="field"><label>Concepto</label><input id="commissionConcept" placeholder="Venta, objetivo mensual, renovación..." value="${esc(editing?.concept||'')}"></div>
+    <div class="field"><label>Importe (€)</label><input id="commissionAmount" type="number" min="0" step="0.01" inputmode="decimal" value="${editing?.amount??''}"></div>
+    <div class="grid2" style="margin-bottom:0"><div class="field"><label>Periodo desde</label><input id="commissionDateFrom" type="date" value="${editing?.dateFrom||today()}"></div><div class="field"><label>Periodo hasta</label><input id="commissionDateTo" type="date" value="${editing?.dateTo||today()}"></div></div>
+    <div class="field"><label>Estado</label><select id="commissionStatus"><option value="unpaid" ${editing?.status!=='paid'?'selected':''}>Pendiente de cobro</option><option value="paid" ${editing?.status==='paid'?'selected':''}>Cobrada</option></select></div>
+    <div class="field"><label>Notas</label><textarea id="commissionNotes">${esc(editing?.notes||'')}</textarea></div>
+    <div class="field"><label>Documento PDF (opcional)</label><label class="btn full">${ICONS.upload}<span>Seleccionar PDF</span><input id="commissionPdf" type="file" accept="application/pdf,.pdf" class="hidden" onchange="showCommissionPdfName(this)"></label><div id="commissionPdfName" class="file-selected">${editing?.pdfName?`Actual: ${esc(editing.pdfName)}`:''}</div></div>
+    <button class="btn full primary" id="saveCommissionButton" onclick="saveCommission('${commissionId}')">${ICONS.check}<span>Guardar comisión</span></button>
   `);
 }
 function showCommissionPdfName(input){
@@ -1462,7 +1539,7 @@ async function uploadCommissionPdf(commissionId,file){
   if(error)throw error;
   return {path,name:file.name};
 }
-async function saveCommission(){
+async function saveCommission(commissionId=''){
   if(!isAdmin())return;
   const userId=$('#commissionUser').value;
   const amount=Number($('#commissionAmount').value);
@@ -1473,17 +1550,28 @@ async function saveCommission(){
   if(dateTo<dateFrom)return toast('La fecha “hasta” no puede ser anterior a la fecha “desde”.');
   const button=$('#saveCommissionButton');
   if(button){button.disabled=true;button.querySelector('span').textContent='Guardando…'}
-  const commissionId=uid();
+  const editing=commissionId?state.commissions.find(c=>c.id===commissionId):null;
+  const id=editing?.id||uid();
   try{
     const file=$('#commissionPdf')?.files?.[0]||null;
-    const uploaded=await uploadCommissionPdf(commissionId,file);
-    state.commissions.push({
-      id:commissionId,userId,concept:$('#commissionConcept').value.trim()||'Comisión',amount,
+    let pdfPath=editing?.pdfPath||'',pdfName=editing?.pdfName||'';
+    if(file){
+      const uploaded=await uploadCommissionPdf(id,file);
+      if(editing?.pdfPath){
+        const {error:removeError}=await supabaseClient.storage.from('commission-pdfs').remove([editing.pdfPath]);
+        if(removeError)console.warn(removeError);
+      }
+      pdfPath=uploaded.path;pdfName=uploaded.name;
+    }
+    const data={
+      id,userId,concept:$('#commissionConcept').value.trim()||'Comisión',amount,
       dateFrom,dateTo,status:$('#commissionStatus').value,notes:$('#commissionNotes').value.trim(),
-      pdfPath:uploaded.path,pdfName:uploaded.name,createdAt:new Date().toISOString(),
-      createdBy:currentUser.id,paidAt:$('#commissionStatus').value==='paid'?new Date().toISOString():''
-    });
-    save();openCommissionsAdmin(userId);toast('Comisión guardada.');
+      pdfPath,pdfName,createdAt:editing?.createdAt||new Date().toISOString(),
+      createdBy:editing?.createdBy||currentUser.id,updatedAt:new Date().toISOString(),
+      updatedBy:currentUser.id,paidAt:$('#commissionStatus').value==='paid'?(editing?.paidAt||new Date().toISOString()):''
+    };
+    if(editing)Object.assign(editing,data);else state.commissions.push(data);
+    save();openCommissionsAdmin(userId);toast(editing?'Comisión actualizada.':'Comisión guardada.');
   }catch(error){
     console.error(error);
     toast(error.message||'No se pudo guardar el PDF.');
@@ -1642,6 +1730,7 @@ function commercialStats(member){
   const completion=acts.length?Math.round(done.length*100/acts.length):0;
   const punctuality=(done.length+overdue.length)?Math.max(0,Math.round(done.length*100/(done.length+overdue.length))):100;
   const cancellationRate=acts.length?Math.round(cancelled.length*100/acts.length):0;
+  const orders=ordersForCommercial(member.user_id);
   const productivity=Math.max(0,Math.min(100,Math.round(completion*.55+punctuality*.30+Math.max(0,100-cancellationRate)*.15)));
   const last6=[];
   for(let i=5;i>=0;i--){
@@ -1649,7 +1738,7 @@ function commercialStats(member){
     const prefix=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
     last6.push({label:d.toLocaleDateString('es-ES',{month:'short'}).replace('.',''),value:done.filter(a=>(a.date||'').startsWith(prefix)).length});
   }
-  return {acts:acts.length,done:done.length,pending:pending.length,cancelled:cancelled.length,overdue:overdue.length,today:todayActs.length,first:first.length,followup:followup.length,clients:clients.size,companies:companies.size,monthDone:monthDone.length,completion,punctuality,cancellationRate,productivity,last6,all:acts};
+  return {acts:acts.length,done:done.length,pending:pending.length,cancelled:cancelled.length,overdue:overdue.length,today:todayActs.length,first:first.length,followup:followup.length,clients:clients.size,companies:companies.size,monthDone:monthDone.length,completion,punctuality,cancellationRate,productivity,last6,orders:orders.length,orderTotal:orders.reduce((s,o)=>s+Number(o.total||0),0),all:acts};
 }
 function openCommercialStats(){
   if(!isAdmin())return;
@@ -1715,7 +1804,10 @@ function openCommercialDetail(userId){
       <div class="stat"><b>${s.followup}</b><span>Seguimientos</span></div>
       <div class="stat"><b>${assignedCompanies.length}</b><span>Empresas asignadas</span></div>
       <div class="stat"><b>${directClients.length}</b><span>Clientes directos</span></div>
+      <div class="stat"><b>${s.orders}</b><span>Pedidos registrados</span></div>
+      <div class="stat"><b>${euro(s.orderTotal)}</b><span>Importe pedidos</span></div>
     </div>
+    <button class="btn full" onclick="openCommercialOrders('${userId}')">${ICONS.inbox}<span>Ver pedidos del comercial</span></button>
     <div class="section-title">Últimas visitas</div>
     <div class="list">${cards(recent,true)}</div>
     <button class="btn full" onclick="openCommercialStats()">${ICONS.chevronLeft}<span>Volver a comerciales</span></button>
