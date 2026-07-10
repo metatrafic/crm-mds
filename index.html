@@ -296,6 +296,28 @@ button,input,select,textarea{font:inherit;color:inherit}
 .followup-note{font-family:var(--mono);font-size:8px;line-height:1.5;color:var(--ink-3);margin-top:6px}
 
 .followup-company-note{font-family:var(--mono);font-size:8px;color:var(--ink-3);line-height:1.5;margin:-4px 0 10px}
+
+/* v6: estados más visibles y asignaciones comerciales */
+.card.activity-pending{border-color:rgba(148,98,11,.38);background:linear-gradient(180deg,#fff 0%,var(--amber-soft) 150%)}
+.card.activity-done{border-color:rgba(28,107,65,.34);background:linear-gradient(180deg,#fff 0%,var(--green-soft) 150%)}
+.card.activity-cancelled{border-color:rgba(178,58,44,.28);opacity:.82}
+.status-ribbon{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:8px;letter-spacing:.7px;text-transform:uppercase;font-weight:500}
+.status-ribbon:before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor}
+.status-ribbon.pending{color:var(--amber)}
+.status-ribbon.done{color:var(--green)}
+.status-ribbon.cancelled{color:var(--red)}
+.day.has-pending{box-shadow:inset 0 0 0 2px rgba(148,98,11,.22)}
+.day.has-done{background:linear-gradient(180deg,var(--surface) 0%,var(--green-soft) 150%)}
+.day.has-pending.has-done{background:linear-gradient(135deg,var(--amber-soft) 0%,var(--green-soft) 100%)}
+.day-status{display:flex;gap:3px;flex-wrap:wrap;margin-top:5px}
+.day-status-dot{width:7px;height:7px;border-radius:50%}
+.day-status-dot.pending{background:var(--amber)}
+.day-status-dot.done{background:var(--green)}
+.day-status-dot.cancelled{background:var(--red)}
+.assignment-chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 8px;background:var(--accent-soft);color:var(--accent);font-family:var(--mono);font-size:8px;margin-top:8px}
+.assignment-chip.unassigned{background:var(--bg);color:var(--ink-3);border:1px solid var(--line)}
+.assignment-chip svg{width:10px;height:10px}
+.client-admin-meta{margin-top:8px}
 </style>
 </head>
 <body>
@@ -520,14 +542,14 @@ function toggleBlock(id){
 function cards(arr, detail){return arr.length?arr.map(a=>activityCard(a,detail)).join(''):empty('inbox','Sin registros','Todavía no hay actividad en este apartado.')}
 function activityCard(a, detail=false){
   const c=client(a.clientId), co=company(a.companyId);
-  return `<div class="card click" onclick="openActivityDetail('${a.id}')">
+  return `<div class="card click activity-${a.status}" onclick="openActivityDetail('${a.id}')">
     <div class="row">
       <div style="min-width:0">
         <div class="card-eyebrow"><span class="dot" style="background:${co.color}"></span>${esc(co.name)} · ${esc(a.type==='first'?'Primera visita':'Seguimiento')}</div>
         <div class="card-title">${esc(clientName(a.clientId))}</div>
         <div class="card-sub">${fmtDate(a.date)}${a.time?' · '+esc(a.time):''}</div>
       </div>
-      <div class="card-side">${statusBadge(a.status)}${ICONS.chevron}</div>
+      <div class="card-side"><span class="status-ribbon ${a.status}">${a.status==='pending'?'Por realizar':a.status==='done'?'Realizada':'Cancelada'}</span>${ICONS.chevron}</div>
     </div>
     ${detail?`<div class="chips">${a.mode?`<span class="chip">${esc(a.mode)}</span>`:''}${a.assignedUserId?`<span class="chip">Comercial: ${esc(memberName(a.assignedUserId))}</span>`:''}${a.todo?`<span class="chip">A tratar: ${esc(a.todo.slice(0,58))}</span>`:''}${a.doneText?`<span class="chip">Tratado: ${esc(a.doneText.slice(0,58))}</span>`:''}</div>`:''}
   </div>`;
@@ -565,12 +587,17 @@ function handleClientSearch(input){
 }
 function clientCard(c){
   const co=company(c.companyId); const lc=lastContact(c.id);
+  const directIds=c.assignedUserIds||[];
+  const companyIds=co.assignedUserIds||[];
+  const allAssigned=[...new Set([...directIds,...companyIds])];
+  const assignedLabel=allAssigned.length?allAssigned.map(memberName).join(' · '):'Sin comercial asignado';
   return `<div class="card click" onclick="openClient('${c.id}')">
     <div class="row">
       <div style="min-width:0">
         <div class="card-eyebrow"><span class="dot" style="background:${co.color}"></span>${esc(co.name)}${c.nif?' · '+esc(c.nif):''}</div>
         <div class="card-title">${esc(c.fiscalName||c.commercialName||'Cliente sin nombre')}</div>
         <div class="card-sub">${lc?'Último contacto '+fmtDate(lc):'Sin contacto todavía'}</div>
+        ${isAdmin()?`<div class="client-admin-meta"><span class="assignment-chip ${allAssigned.length?'':'unassigned'}">${ICONS.users}<span>${esc(assignedLabel)}</span></span></div>`:''}
       </div>
       <div class="card-side">${impBadge(c.importance)}${ICONS.chevron}</div>
     </div>
@@ -584,7 +611,7 @@ function renderHistorial(){const arr=visibleActivities().slice().sort(sortDateDe
 /* ---------- Calendario ---------- */
 function renderCalendar(){
   const y=calDate.getFullYear(), m=calDate.getMonth(); const first=new Date(y,m,1); const start=new Date(first); start.setDate(first.getDate()-((first.getDay()+6)%7)); const cells=[];
-  for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i); const iso=localISODate(d); const acts=visibleActivities().filter(a=>a.date===iso); const colors=[...new Set(acts.map(a=>company(a.companyId).color))]; cells.push(`<div class="day ${d.getMonth()!==m?'out':''} ${iso===today()?'today':''}" onclick="openDay('${iso}')"><div class="day-num">${d.getDate()}</div><div class="points">${colors.map(c=>`<span class="point" style="background:${c}"></span>`).join('')}</div></div>`)}
+  for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i); const iso=localISODate(d); const acts=visibleActivities().filter(a=>a.date===iso); const colors=[...new Set(acts.map(a=>company(a.companyId).color))]; const statuses=[...new Set(acts.map(a=>a.status))]; cells.push(`<div class="day ${d.getMonth()!==m?'out':''} ${iso===today()?'today':''} ${statuses.includes('pending')?'has-pending':''} ${statuses.includes('done')?'has-done':''}" onclick="openDay('${iso}')"><div class="day-num">${d.getDate()}</div><div class="day-status">${statuses.map(s=>`<span class="day-status-dot ${s}" title="${s==='pending'?'Pendiente':s==='done'?'Realizada':'Cancelada'}"></span>`).join('')}</div><div class="points">${colors.map(c=>`<span class="point" style="background:${c}"></span>`).join('')}</div></div>`)}
   $('#view-calendario').innerHTML=`<div class="calendar-head"><button class="icon-btn" onclick="calDate.setMonth(calDate.getMonth()-1);renderCalendar()">${ICONS.chevronLeft}</button><div class="calendar-title">${calDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'})}</div><button class="icon-btn" onclick="calDate.setMonth(calDate.getMonth()+1);renderCalendar()">${ICONS.chevron}</button></div><div class="cal"><div class="cal-week">${['L','M','X','J','V','S','D'].map(x=>`<div>${x}</div>`).join('')}</div><div class="cal-grid">${cells.join('')}</div></div>`;
 }
 
@@ -639,6 +666,7 @@ function openClient(id){
       <div class="info-row"><span>Dirección</span><b>${esc(c.address||'—')}</b></div>
       <div class="info-row"><span>Importancia</span><b>${c.importance?impBadge(c.importance):'Sin etiqueta'}</b></div>
       <div class="info-row"><span>Último contacto</span><b>${lc?fmtDate(lc):'Sin contacto'}</b></div>
+      ${isAdmin()?`<div class="info-row"><span>Comercial</span><b>${esc((()=>{const ids=[...new Set([...(c.assignedUserIds||[]),...(co.assignedUserIds||[])])];return ids.length?ids.map(memberName).join(' · '):'Sin asignar'})())}</b></div>`:''}
     </div>
     <div class="actions">
       <a class="btn" href="tel:${esc(c.mobile||c.phone||'')}">${ICONS.phone}<span>Llamar</span></a>
@@ -706,7 +734,7 @@ function refreshActivityForm(){
   const status=$('#actStatus')?.value||'pending';
   const assignee=isAdmin()?($('#actAssignee')?.value||''):(currentUser?.id||'');
 
-  if(cid&&!a){
+  if(cid&&!a&&!$('#actParent')?.value){
     type=hasFirst(cid)?'followup':'first';
     $('#actType').value=type;
   }
@@ -732,14 +760,15 @@ function refreshActivityForm(){
 
   if(type==='followup'){
     if(cid){
+      const currentParentValue=$('#actParent')?.value||a?.parentId||'';
       let parents=state.activities.filter(x=>x.clientId===cid&&x.id!==activityEditId&&canBeParent(x,activityEditId));
-      const cur=a?.parentId;
-      if(cur&&!parents.some(p=>p.id===cur)){
-        const p=state.activities.find(x=>x.id===cur);
-        if(p)parents.unshift(p);
+      if(currentParentValue&&!parents.some(p=>p.id===currentParentValue)){
+        const p=state.activities.find(x=>x.id===currentParentValue);
+        if(p&&p.clientId===cid)parents.unshift(p);
       }
       $('#actParent').innerHTML='<option value="">Selecciona visita anterior</option>'+
-        parents.map(p=>`<option value="${p.id}" ${cur===p.id?'selected':''}>${fmtDate(p.date)} ${p.time||''} · ${p.type==='first'?'Primera':'Seguimiento'} · ${esc((p.todo||p.doneText||'').slice(0,55))}</option>`).join('');
+        parents.map(p=>`<option value="${p.id}" ${currentParentValue===p.id?'selected':''}>${fmtDate(p.date)} ${p.time||''} · ${p.type==='first'?'Primera':'Seguimiento'} · ${esc((p.todo||p.doneText||'').slice(0,55))}</option>`).join('');
+      if(currentParentValue&&parents.some(p=>p.id===currentParentValue))$('#actParent').value=currentParentValue;
     }else{
       $('#actParent').innerHTML='<option value="">Primero selecciona un cliente</option>';
     }
@@ -772,7 +801,7 @@ function saveActivity(){
   const assigneeForValidation=isAdmin()?($('#actAssignee')?.value||''):(currentUser?.id||'');
   if(assigneeForValidation&&!clientsForMember(assigneeForValidation).some(c=>c.id===cid))return toast('Ese cliente no está asignado al comercial seleccionado.');
   if(type==='first'&&hasFirst(cid)&&!(activityEditId&&state.activities.find(a=>a.id===activityEditId)?.type==='first'))return toast('Este cliente ya tiene una primera visita. Debes crear un seguimiento.');
-  if(type==='followup'&&!$('#actParent').value)return toast('Un seguimiento debe estar vinculado a una visita anterior.');
+  if(type==='followup'&&!$('#actParent').value)return toast('Selecciona una visita anterior realizada para crear el seguimiento.');
   if(type==='followup'&&state.activities.some(a=>a.id!==activityEditId&&a.parentId===$('#actParent').value))return toast('Esa visita ya tiene seguimiento. Elige otra visita anterior.');
   if(status==='pending'&&type==='followup'&&overlaps($('#actDate').value,$('#actTime').value,activityEditId))return toast('Ya existe un seguimiento pendiente a esa hora.');
   let a=activityEditId?state.activities.find(x=>x.id===activityEditId):null;
