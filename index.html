@@ -437,6 +437,16 @@ button,input,select,textarea{font:inherit;color:inherit}
 .order-body{font-size:12px;line-height:1.55;color:var(--ink-2);white-space:pre-wrap;margin-top:10px}
 .order-total{font-family:var(--mono);font-size:17px;font-weight:500;margin-top:8px}
 .company-email-note{font-family:var(--mono);font-size:8px;color:var(--ink-3);line-height:1.5;margin-top:6px}
+
+/* v12: filtros de clientes y favoritos personales */
+.favorite-btn{width:34px;height:34px;border:1px solid var(--line);background:var(--surface);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--ink-3);flex:0 0 auto}
+.favorite-btn.active{background:var(--amber-soft);color:var(--amber);border-color:rgba(148,98,11,.25)}
+.favorite-btn svg{width:16px;height:16px}
+.client-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.client-filter-grid .field:last-child{grid-column:1/-1}
+.favorite-chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:5px 8px;background:var(--amber-soft);color:var(--amber);font-family:var(--mono);font-size:8px;margin-top:8px}
+.favorite-chip svg{width:10px;height:10px}
+@media(max-width:370px){.client-filter-grid{grid-template-columns:1fr}.client-filter-grid .field:last-child{grid-column:auto}}
 </style>
 </head>
 <body>
@@ -528,17 +538,18 @@ const ICONS={
  upload:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9m0 0 4 4m-4-4-4 4"/><path d="M4 5h16"/></svg>',
  alertTri:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 21.5 20h-19z"/><path d="M12 10v4.2M12 17.2h.01"/></svg>',
  inbox:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4.5l1.5 3h4l1.5-3H20"/><path d="M4 12 5.7 5.4A1.5 1.5 0 0 1 7.1 4h9.8a1.5 1.5 0 0 1 1.4 1.4L20 12v6a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 18z"/></svg>',
+ star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg>',
  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>'
 };
 const NAV_ITEMS=[['inicio','home','Inicio'],['clientes','users','Clientes'],['agenda','agenda','Agenda'],['calendario','calendar','Calendario'],['historial','history','Historial'],['ajustes','settings','Ajustes']];
 
-const DEFAULT_STATE=()=>({settings:{commercial:'',inactiveDays:90},companies:[{id:uid(),name:'Grupo MDS',color:'#1C6FB8',assignedUserIds:[]}],clients:[],activities:[],commissions:[],orders:[],permissions:{}});
+const DEFAULT_STATE=()=>({settings:{commercial:'',inactiveDays:90},companies:[{id:uid(),name:'Grupo MDS',color:'#1C6FB8',assignedUserIds:[]}],clients:[],activities:[],commissions:[],orders:[],clientFavorites:{},permissions:{}});
 let state=loadLocal(), supabaseClient=null, currentUser=null, currentProfile=null, teamMembers=[], cloudSaveTimer=null, cloudReady=false, cloudUpdatedAt='', cloudPollTimer=null, cloudPollBusy=false;
 function loadLocal(){try{const d=JSON.parse(localStorage.getItem(LS)); if(d&&d.companies&&d.clients&&d.activities) return normalizeState(d);}catch(e){} return DEFAULT_STATE();}
 function normalizeState(d){
   d.settings=d.settings||{commercial:'',inactiveDays:90};
   d.companies=(d.companies||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[],orderEmail:c.orderEmail||''}));
-  d.clients=(d.clients||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[]}));
+  d.clients=(d.clients||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[],population:c.population||''}));
   d.activities=(d.activities||[]).map(a=>({...a,assignedUserId:a.assignedUserId||''}));
   d.commissions=(Array.isArray(d.commissions)?d.commissions:[]).map(c=>({
     ...c,
@@ -548,6 +559,7 @@ function normalizeState(d){
   d.permissions=d.permissions&&typeof d.permissions==='object'?d.permissions:{};
   d.commissions=(d.commissions||[]).map(c=>({...c,pdfPath:c.pdfPath||'',pdfName:c.pdfName||''}));
   d.orders=Array.isArray(d.orders)?d.orders:[];
+  d.clientFavorites=d.clientFavorites&&typeof d.clientFavorites==='object'?d.clientFavorites:{};
   return d;
 }
 function isAdmin(){return currentProfile?.role==='admin'}
@@ -579,6 +591,21 @@ function visibleClients(){
   return state.clients.filter(c=>(c.assignedUserIds||[]).includes(currentUser?.id)||companyIds.has(c.companyId));
 }
 function canSeeClient(id){return isAdmin()||visibleClients().some(c=>c.id===id)}
+function favoriteClientIds(userId=currentUser?.id){
+  return new Set(state.clientFavorites?.[userId]||[]);
+}
+function isFavoriteClient(clientId,userId=currentUser?.id){
+  return favoriteClientIds(userId).has(clientId);
+}
+function toggleFavoriteClient(clientId,event){
+  event?.stopPropagation();
+  if(!currentUser)return;
+  state.clientFavorites=state.clientFavorites||{};
+  const ids=favoriteClientIds(currentUser.id);
+  ids.has(clientId)?ids.delete(clientId):ids.add(clientId);
+  state.clientFavorites[currentUser.id]=[...ids];
+  save();renderClientes();toast(ids.has(clientId)?'Cliente añadido a favoritos.':'Cliente eliminado de favoritos.');
+}
 function clientsForMember(userId){
   if(!userId)return state.clients;
   const companyIds=new Set(state.companies.filter(c=>(c.assignedUserIds||[]).includes(userId)).map(c=>c.id));
@@ -666,11 +693,7 @@ function statusBadge(s){
   const [label,cls]=map[s]||[s,''];
   return `<span class="badge ${cls}">${esc(label)}</span>`;
 }
-function impBadge(imp){
-  if(!imp) return '';
-  const cls={'Baja':'imp-low','Media':'imp-mid','Alta':'imp-high','Muy alta':'imp-top'}[imp]||'';
-  return `<span class="badge ${cls}">${esc(imp)}</span>`;
-}
+function impBadge(){return ''}
 function empty(icon,title,sub){
   return `<div class="empty-state">${ICONS[icon]}<div class="empty-title">${esc(title)}</div>${sub?`<div class="empty-sub">${esc(sub)}</div>`:''}</div>`;
 }
@@ -714,19 +737,38 @@ function sortDate(a,b){return ((a.date||'')+(a.time||'')).localeCompare((b.date|
 
 /* ---------- Clientes ---------- */
 function renderClientes(){
-  const q=clientSearchTerm; const imp=$('#impFilter')?.value||'';
-  let arr=visibleClients().filter(c=>(selectedCompany==='all'||c.companyId===selectedCompany)&&matchesClient(c,q));
-  if(imp)arr=arr.filter(c=>(c.importance||'')===imp);
-  arr.sort((a,b)=>(company(a.companyId).name.localeCompare(company(b.companyId).name)||((a.order??999999)-(b.order??999999))||String(a.fiscalName).localeCompare(String(b.fiscalName))));
-  const filtersOpen=!!$('#clientFilters') && !$('#clientFilters').classList.contains('hidden');
+  const q=clientSearchTerm;
+  const companyFilter=$('#clientCompanyFilter')?.value||'all';
+  const favoriteFilter=$('#clientFavoriteFilter')?.value||'all';
+  const populationFilter=$('#clientPopulationFilter')?.value||'all';
+
+  let arr=visibleClients().filter(c=>matchesClient(c,q));
+  if(companyFilter!=='all')arr=arr.filter(c=>c.companyId===companyFilter);
+  if(favoriteFilter==='favorites')arr=arr.filter(c=>isFavoriteClient(c.id));
+  if(populationFilter!=='all')arr=arr.filter(c=>(c.population||'')===populationFilter);
+
+  arr.sort((a,b)=>{
+    const favDiff=Number(isFavoriteClient(b.id))-Number(isFavoriteClient(a.id));
+    return favDiff||company(a.companyId).name.localeCompare(company(b.companyId).name)||String(a.fiscalName||a.commercialName||'').localeCompare(String(b.fiscalName||b.commercialName||''));
+  });
+
+  const filtersOpen=!!$('#clientFilters')&&!$('#clientFilters').classList.contains('hidden');
+  const companies=visibleCompanies().slice().sort((a,b)=>a.name.localeCompare(b.name));
+  const populations=[...new Set(visibleClients().map(c=>(c.population||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+
   $('#view-clientes').innerHTML=`<div class="row" style="align-items:center;margin-bottom:12px"><div class="section-title" style="margin:0">Clientes</div>${hasPermission('addClients')?`<button class="btn primary" style="padding:9px 11px" onclick="openNewClient()">${ICONS.plus}<span>Nuevo</span></button>`:''}</div>
   <div class="search-bar">${ICONS.search}<input id="clientSearch" placeholder="Buscar por nombre, CIF, contacto, teléfono..." value="${esc(q)}" autocomplete="off" inputmode="search" oninput="handleClientSearch(this)"></div>
-  <button class="filter-toggle" onclick="toggleBlock('clientFilters')">${ICONS.filter}<span>Filtros</span>${imp?`<span class="filter-active-dot"></span>`:''}</button>
-  <div id="clientFilters" class="field ${filtersOpen?'':'hidden'}" style="margin-top:2px"><select id="impFilter" onchange="renderClientes()"><option value="">Todas las importancias</option>${['Baja','Media','Alta','Muy alta'].map(x=>`<option ${imp===x?'selected':''}>${x}</option>`).join('')}</select></div>
+  <button class="filter-toggle" onclick="toggleBlock('clientFilters')">${ICONS.filter}<span>Filtros</span>${companyFilter!=='all'||favoriteFilter!=='all'||populationFilter!=='all'?`<span class="filter-active-dot"></span>`:''}</button>
+  <div id="clientFilters" class="${filtersOpen?'':'hidden'}">
+    <div class="client-filter-grid">
+      <div class="field"><label>Empresa</label><select id="clientCompanyFilter" onchange="renderClientes()"><option value="all">Todas las empresas</option>${companies.map(c=>`<option value="${c.id}" ${companyFilter===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div>
+      <div class="field"><label>Favoritos</label><select id="clientFavoriteFilter" onchange="renderClientes()"><option value="all" ${favoriteFilter==='all'?'selected':''}>Todos</option><option value="favorites" ${favoriteFilter==='favorites'?'selected':''}>Solo favoritos</option></select></div>
+      <div class="field"><label>Población</label><select id="clientPopulationFilter" onchange="renderClientes()"><option value="all">Todas las poblaciones</option>${populations.map(p=>`<option value="${esc(p)}" ${populationFilter===p?'selected':''}>${esc(p)}</option>`).join('')}</select></div>
+    </div>
+  </div>
   <div class="list-count">${arr.length} ${arr.length===1?'cliente':'clientes'}</div>
-  <div class="list">${arr.length?arr.map(clientCard).join(''):empty('inbox','No hay clientes','Prueba a cambiar la búsqueda o los filtros, o importa un CSV desde Ajustes.')}</div>`;
+  <div class="list">${arr.length?arr.map(clientCard).join(''):empty('inbox','No hay clientes','Prueba a cambiar la búsqueda o los filtros.')}</div>`;
 }
-
 function handleClientSearch(input){
   clientSearchTerm=input.value;
   clientSearchCaret=input.selectionStart??input.value.length;
@@ -747,15 +789,20 @@ function clientCard(c){
   const companyIds=co.assignedUserIds||[];
   const allAssigned=[...new Set([...directIds,...companyIds])];
   const assignedLabel=allAssigned.length?allAssigned.map(memberName).join(' · '):'Sin comercial asignado';
+  const fav=isFavoriteClient(c.id);
   return `<div class="card click" onclick="openClient('${c.id}')">
     <div class="row">
-      <div style="min-width:0">
+      <div style="min-width:0;flex:1">
         <div class="card-eyebrow"><span class="dot" style="background:${co.color}"></span>${esc(co.name)}${c.nif?' · '+esc(c.nif):''}</div>
         <div class="card-title">${esc(c.fiscalName||c.commercialName||'Cliente sin nombre')}</div>
-        <div class="card-sub">${lc?'Último contacto '+fmtDate(lc):'Sin contacto todavía'}</div>
+        <div class="card-sub">${c.population?esc(c.population)+' · ':''}${lc?'Último contacto '+fmtDate(lc):'Sin contacto todavía'}</div>
+        ${fav?`<div class="favorite-chip">${ICONS.star}<span>Favorito</span></div>`:''}
         ${isAdmin()?`<div class="client-admin-meta"><span class="assignment-chip ${allAssigned.length?'':'unassigned'}">${ICONS.users}<span>${esc(assignedLabel)}</span></span></div>`:''}
       </div>
-      <div class="card-side">${impBadge(c.importance)}${ICONS.chevron}</div>
+      <div class="card-side">
+        <button class="favorite-btn ${fav?'active':''}" onclick="toggleFavoriteClient('${c.id}',event)" aria-label="${fav?'Quitar de favoritos':'Añadir a favoritos'}">${ICONS.star}</button>
+        ${ICONS.chevron}
+      </div>
     </div>
   </div>`;
 }
@@ -820,7 +867,8 @@ function openClient(id){
       <div class="info-row"><span>Teléfono</span><b>${esc([c.phone,c.mobile].filter(Boolean).join(' · ')||'—')}</b></div>
       <div class="info-row"><span>Email</span><b>${esc(c.email||'—')}</b></div>
       <div class="info-row"><span>Dirección</span><b>${esc(c.address||'—')}</b></div>
-      <div class="info-row"><span>Importancia</span><b>${c.importance?impBadge(c.importance):'Sin etiqueta'}</b></div>
+      <div class="info-row"><span>Población</span><b>${esc(c.population||'—')}</b></div>
+      <div class="info-row"><span>Favorito</span><b>${isFavoriteClient(c.id)?'Sí':'No'}</b></div>
       <div class="info-row"><span>Último contacto</span><b>${lc?fmtDate(lc):'Sin contacto'}</b></div>
       ${isAdmin()?`<div class="info-row"><span>Comercial</span><b>${esc((()=>{const ids=[...new Set([...(c.assignedUserIds||[]),...(co.assignedUserIds||[])])];return ids.length?ids.map(memberName).join(' · '):'Sin asignar'})())}</b></div>`:''}
     </div>
@@ -831,6 +879,7 @@ function openClient(id){
       <a class="btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.address||c.fiscalName||'')}" target="_blank">${ICONS.map}<span>Maps</span></a>
     </div>
   </div>
+  <button class="btn full ${isFavoriteClient(id)?'warn':''}" onclick="toggleFavoriteClient('${id}',event);openClient('${id}')">${ICONS.star}<span>${isFavoriteClient(id)?'Quitar de favoritos':'Añadir a favoritos'}</span></button>
   <button class="btn full primary" onclick="openActivity(null,'${id}')">${ICONS.plus}<span>Nueva visita</span></button>
   <button class="btn full blue" onclick="openOrderForm('${id}')">${ICONS.mail}<span>Enviar pedido</span></button>
   ${hasPermission('editClients')?`<button class="btn full" onclick="editClient('${id}')">${ICONS.edit}<span>Editar cliente</span></button>`:''}
@@ -917,7 +966,7 @@ function openNewClient(){
     <div class="grid2" style="margin-bottom:0"><div class="field"><label>Teléfono</label><input id="ncPhone" inputmode="tel"></div><div class="field"><label>Móvil</label><input id="ncMobile" inputmode="tel"></div></div>
     <div class="field"><label>Email</label><input id="ncEmail" type="email"></div>
     <div class="field"><label>Dirección</label><input id="ncAddress"></div>
-    <div class="field"><label>Importancia</label><select id="ncImportance"><option value="">Sin etiqueta</option>${['Baja','Media','Alta','Muy alta'].map(x=>`<option>${x}</option>`).join('')}</select></div>
+    <div class="field"><label>Población</label><input id="ncPopulation"></div>
     <div class="field"><label>Notas</label><textarea id="ncNotes"></textarea></div>
     <button class="btn full primary" onclick="saveNewClient()">${ICONS.check}<span>Guardar cliente</span></button>
   `);
@@ -933,7 +982,7 @@ function saveNewClient(){
     id:uid(),companyId,fiscalName,commercialName,nif:$('#ncNif').value.trim(),
     contact:$('#ncContact').value.trim(),phone:$('#ncPhone').value.trim(),
     mobile:$('#ncMobile').value.trim(),email:$('#ncEmail').value.trim(),
-    address:$('#ncAddress').value.trim(),importance:$('#ncImportance').value,
+    address:$('#ncAddress').value.trim(),population:$('#ncPopulation').value.trim(),
     notes:$('#ncNotes').value.trim(),alertMsg:'',assignedUserIds:isAdmin()?[]:[currentUser.id],
     createdAt:new Date().toISOString()
   };
@@ -953,9 +1002,9 @@ async function deleteClient(id){
 function editClient(id){
   if(!hasPermission('editClients'))return toast('No tienes permiso para editar clientes.');
   const c=client(id);
-  openSheet('Editar cliente',c.fiscalName||'',`<div class="field"><label>Nombre fiscal</label><input id="ecFiscal" value="${esc(c.fiscalName||'')}"></div><div class="field"><label>Nombre comercial</label><input id="ecCom" value="${esc(c.commercialName||'')}"></div><div class="field"><label>Importancia</label><select id="ecImp"><option value="">Sin etiqueta</option>${['Baja','Media','Alta','Muy alta'].map(x=>`<option ${c.importance===x?'selected':''}>${x}</option>`).join('')}</select></div><div class="field"><label>Mensaje emergente</label><textarea id="ecAlert">${esc(c.alertMsg||'')}</textarea></div><div class="field"><label>Notas</label><textarea id="ecNotes">${esc(c.notes||'')}</textarea></div><button class="btn full primary" onclick="saveClientEdit('${id}')">${ICONS.check}<span>Guardar cliente</span></button>`);
+  openSheet('Editar cliente',c.fiscalName||'',`<div class="field"><label>Nombre fiscal</label><input id="ecFiscal" value="${esc(c.fiscalName||'')}"></div><div class="field"><label>Nombre comercial</label><input id="ecCom" value="${esc(c.commercialName||'')}"></div><div class="field"><label>Población</label><input id="ecPopulation" value="${esc(c.population||'')}"></div><div class="field"><label>Mensaje emergente</label><textarea id="ecAlert">${esc(c.alertMsg||'')}</textarea></div><div class="field"><label>Notas</label><textarea id="ecNotes">${esc(c.notes||'')}</textarea></div><button class="btn full primary" onclick="saveClientEdit('${id}')">${ICONS.check}<span>Guardar cliente</span></button>`);
 }
-function saveClientEdit(id){if(!hasPermission('editClients'))return toast('No tienes permiso para editar clientes.');const c=client(id); Object.assign(c,{fiscalName:$('#ecFiscal').value,commercialName:$('#ecCom').value,importance:$('#ecImp').value,alertMsg:$('#ecAlert').value,notes:$('#ecNotes').value}); save(); closeSheet(); render(); toast('Cliente guardado.');}
+function saveClientEdit(id){if(!hasPermission('editClients'))return toast('No tienes permiso para editar clientes.');const c=client(id); Object.assign(c,{fiscalName:$('#ecFiscal').value,commercialName:$('#ecCom').value,population:$('#ecPopulation').value.trim(),alertMsg:$('#ecAlert').value,notes:$('#ecNotes').value}); save(); closeSheet(); render(); toast('Cliente guardado.');}
 
 /* ---------- Actividad (visitas) ---------- */
 function openActivity(id=null, preClient=null){
