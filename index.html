@@ -318,6 +318,63 @@ button,input,select,textarea{font:inherit;color:inherit}
 .assignment-chip.unassigned{background:var(--bg);color:var(--ink-3);border:1px solid var(--line)}
 .assignment-chip svg{width:10px;height:10px}
 .client-admin-meta{margin-top:8px}
+
+/* v7: panel avanzado, mensajería y comisiones */
+.header-chat{position:absolute;right:92px;width:34px;height:34px;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--ink-2)}
+.header-chat svg{width:15px;height:15px}
+.header-chat-badge{position:absolute;right:-4px;top:-5px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:var(--red);color:#fff;border:2px solid var(--surface);font-family:var(--mono);font-size:7px;display:none;align-items:center;justify-content:center}
+.header-chat-badge.show{display:flex}
+.admin-dashboard-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.admin-dashboard-title{font-size:20px;font-weight:700;line-height:1.1}
+.admin-dashboard-sub{font-family:var(--mono);font-size:8px;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-3);margin-top:5px}
+.admin-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:12px}
+.admin-kpi{border:1px solid var(--line);border-radius:13px;padding:13px;background:var(--surface)}
+.admin-kpi b{display:block;font-family:var(--mono);font-size:24px;font-weight:500}
+.admin-kpi span{display:block;font-family:var(--mono);font-size:7.5px;letter-spacing:.7px;text-transform:uppercase;color:var(--ink-3);margin-top:4px}
+.admin-kpi.attention{background:var(--amber-soft);border-color:rgba(148,98,11,.22)}
+.admin-kpi.positive{background:var(--green-soft);border-color:rgba(28,107,65,.20)}
+.admin-quick{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
+.admin-quick button{min-height:70px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;text-align:left;padding:12px}
+.admin-quick button svg{width:17px;height:17px}
+.admin-section{margin-top:16px}
+.alert-list{display:flex;flex-direction:column;gap:7px}
+.alert-item{border:1px solid var(--line);border-radius:11px;padding:11px;background:var(--surface);display:flex;gap:9px;align-items:flex-start}
+.alert-item svg{width:15px;height:15px;color:var(--amber);flex:0 0 auto}
+.alert-item b{font-size:12px;display:block}
+.alert-item span{font-family:var(--mono);font-size:8px;color:var(--ink-3);display:block;margin-top:3px}
+.leader-row{display:grid;grid-template-columns:24px 1fr 46px;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line-soft)}
+.leader-row:last-child{border-bottom:0}
+.leader-rank{font-family:var(--mono);font-size:10px;color:var(--ink-3)}
+.leader-name{font-size:12.5px;font-weight:600}
+.leader-sub{font-family:var(--mono);font-size:7.5px;color:var(--ink-3);margin-top:2px}
+.leader-score{font-family:var(--mono);font-size:15px;text-align:right}
+.chat-layout{display:flex;flex-direction:column;gap:10px}
+.conversation-item{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--surface);cursor:pointer}
+.conversation-item.unread{border-color:rgba(31,95,166,.35);background:var(--accent-soft)}
+.conversation-name{font-size:13px;font-weight:700}
+.conversation-preview{font-size:11px;color:var(--ink-2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conversation-meta{font-family:var(--mono);font-size:7.5px;color:var(--ink-3);margin-top:5px}
+.chat-thread{display:flex;flex-direction:column;gap:8px;min-height:260px;max-height:52dvh;overflow:auto;padding:4px}
+.chat-bubble{max-width:82%;padding:10px 11px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);align-self:flex-start}
+.chat-bubble.mine{align-self:flex-end;background:var(--ink);color:#fff;border-color:var(--ink)}
+.chat-bubble-text{font-size:12.5px;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.chat-bubble-time{font-family:var(--mono);font-size:7px;opacity:.58;margin-top:5px;text-align:right}
+.chat-compose{display:grid;grid-template-columns:1fr 42px;gap:8px;position:sticky;bottom:0;background:var(--surface);padding-top:9px}
+.chat-compose textarea{min-height:42px;max-height:110px;resize:none}
+.chat-send{border:0;background:var(--ink);color:#fff;border-radius:11px;display:flex;align-items:center;justify-content:center}
+.chat-send svg{width:16px;height:16px}
+.commission-card{border:1px solid var(--line);border-radius:12px;padding:13px;background:var(--surface);margin-bottom:9px}
+.commission-card.paid{border-color:rgba(28,107,65,.25);background:linear-gradient(180deg,#fff 0%,var(--green-soft) 170%)}
+.commission-card.unpaid{border-color:rgba(148,98,11,.26);background:linear-gradient(180deg,#fff 0%,var(--amber-soft) 170%)}
+.commission-amount{font-family:var(--mono);font-size:21px;font-weight:500}
+.commission-concept{font-size:12.5px;font-weight:600;margin-top:2px}
+.commission-meta{font-family:var(--mono);font-size:8px;color:var(--ink-3);margin-top:5px}
+.money-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.money-box{border:1px solid var(--line);border-radius:12px;padding:13px;background:var(--surface-2)}
+.money-box b{display:block;font-family:var(--mono);font-size:20px}
+.money-box span{font-family:var(--mono);font-size:7.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink-3)}
+.notification-permission{border:1px solid var(--line);border-radius:11px;padding:11px;background:var(--surface-2);margin-bottom:10px}
+@media(max-width:370px){.header-chat{right:82px}.top-action{padding-left:10px;padding-right:10px}}
 </style>
 </head>
 <body>
@@ -339,6 +396,7 @@ button,input,select,textarea{font:inherit;color:inherit}
   <div class="header">
     <img class="logo" src="https://www.matriculadosdelsur.com/wp-content/uploads/2025/10/grupomds-e1705059389337-125x97.png" onerror="this.style.display='none'">
     <div class="header-title">CRM MDS</div><div class="sync-pill" id="syncPill">Sincronizando</div>
+    <button class="header-chat" id="headerChatBtn" type="button" onclick="openMessenger()" aria-label="Mensajes">${ICONS.mail}<span class="header-chat-badge" id="chatBadge"></span></button>
     <button class="top-action" onclick="openActivity()" id="topActionBtn"></button>
   </div>
   <main class="content" id="content">
@@ -400,7 +458,7 @@ const ICONS={
 };
 const NAV_ITEMS=[['inicio','home','Inicio'],['clientes','users','Clientes'],['agenda','agenda','Agenda'],['calendario','calendar','Calendario'],['historial','history','Historial'],['ajustes','settings','Ajustes']];
 
-const DEFAULT_STATE=()=>({settings:{commercial:'',inactiveDays:90},companies:[{id:uid(),name:'Grupo MDS',color:'#1C6FB8',assignedUserIds:[]}],clients:[],activities:[]});
+const DEFAULT_STATE=()=>({settings:{commercial:'',inactiveDays:90},companies:[{id:uid(),name:'Grupo MDS',color:'#1C6FB8',assignedUserIds:[]}],clients:[],activities:[],messages:[],commissions:[]});
 let state=loadLocal(), supabaseClient=null, currentUser=null, currentProfile=null, teamMembers=[], cloudSaveTimer=null, cloudReady=false, cloudUpdatedAt='', cloudPollTimer=null, cloudPollBusy=false;
 function loadLocal(){try{const d=JSON.parse(localStorage.getItem(LS)); if(d&&d.companies&&d.clients&&d.activities) return normalizeState(d);}catch(e){} return DEFAULT_STATE();}
 function normalizeState(d){
@@ -408,6 +466,8 @@ function normalizeState(d){
   d.companies=(d.companies||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[]}));
   d.clients=(d.clients||[]).map(c=>({...c,assignedUserIds:Array.isArray(c.assignedUserIds)?c.assignedUserIds:[]}));
   d.activities=(d.activities||[]).map(a=>({...a,assignedUserId:a.assignedUserId||''}));
+  d.messages=Array.isArray(d.messages)?d.messages:[];
+  d.commissions=Array.isArray(d.commissions)?d.commissions:[];
   return d;
 }
 function isAdmin(){return currentProfile?.role==='admin'}
@@ -502,7 +562,7 @@ $('#sheetCloseBtn').addEventListener('click',closeSheet);
 $('#nav').innerHTML=NAV_ITEMS.map(([v,icon,label],i)=>`<button data-view="${v}" class="${i===0?'active':''}">${ICONS[icon]}<span>${label}</span></button>`).join('');
 document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-view]'); if(!b)return; showView(b.dataset.view);});
 function showView(v){activeView=v; $$('.view').forEach(x=>x.classList.remove('active')); $('#view-'+v).classList.add('active'); $$('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===v)); render();}
-function render(){renderInicio();renderClientes();renderAgenda();renderCalendar();renderHistorial();renderAjustes();}
+function render(){renderInicio();renderClientes();renderAgenda();renderCalendar();renderHistorial();renderAjustes();updateChatBadge();}
 
 /* ---------- Shared badges / empty states ---------- */
 function statusBadge(s){
@@ -620,9 +680,18 @@ function renderAjustes(){
   const opts=visibleCompanies().map(c=>`<option value="${c.id}" ${selectedCompany===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
   $('#view-ajustes').innerHTML=`<div class="section-title">Ajustes</div>
   <div class="card"><div class="settings-card-title">${ICONS.users}<span>Sesión</span></div><div class="user-card" style="margin-top:10px">${esc(currentProfile?.display_name||currentUser?.email||'')} · <span class="role-badge ${isAdmin()?'admin':''}">${isAdmin()?'Administrador':'Comercial'}</span></div><div class="small" style="margin-top:8px">${esc(currentUser?.email||'')}</div><button class="btn full" style="margin-top:12px;margin-bottom:0" onclick="signOutUser()">Cerrar sesión</button></div>
-  ${isAdmin()?`<div class="settings-group"><div class="section-title">Administración</div>
-    <button class="btn full primary" onclick="openTeamAdmin()">${ICONS.users}<span>Equipo y asignaciones</span></button>
-    <button class="btn full" onclick="openCommercialStats()">${ICONS.history}<span>Estadísticas comerciales</span></button>
+  ${isAdmin()?`<div class="settings-group"><div class="section-title">Centro de administración</div>
+    <button class="btn full primary" onclick="openAdminDashboard()">${ICONS.home}<span>Panel de control avanzado</span></button>
+    <button class="btn full" onclick="openTeamAdmin()">${ICONS.users}<span>Equipo y asignaciones</span></button>
+    <button class="btn full" onclick="openCommercialStats()">${ICONS.history}<span>Productividad del equipo</span></button>
+    <button class="btn full" onclick="openCommissionsAdmin()">${ICONS.building}<span>Comisiones</span></button>
+  </div>`:''}
+  <div class="settings-group"><div class="section-title">Comunicación</div>
+    <button class="btn full" onclick="openMessenger()">${ICONS.mail}<span>Mensajes del equipo</span><span id="settingsUnreadCount"></span></button>
+    <button class="btn full" onclick="requestNotificationPermission()">${ICONS.alertTri}<span>Activar notificaciones</span></button>
+  </div>
+  ${!isAdmin()?`<div class="settings-group"><div class="section-title">Retribución</div>
+    <button class="btn full" onclick="openMyCommissions()">${ICONS.download}<span>Mis comisiones</span></button>
   </div>`:''}
   <div class="card" id="pwaSettingsCard"><div class="settings-card-title">${ICONS.download}<span>Aplicación móvil</span></div><div class="small" style="margin-top:10px" id="pwaSettingsText">Puedes instalar CRM MDS en la pantalla de inicio.</div><button class="btn full primary" id="pwaSettingsButton" style="margin-top:12px;margin-bottom:0" onclick="requestAppInstall()">${ICONS.download}<span>Instalar aplicación</span></button></div>
   <div class="card"><div class="settings-card-title">${ICONS.building}<span>Empresa activa</span></div><div class="field" style="margin-top:12px;margin-bottom:0"><select onchange="selectedCompany=this.value;render()"><option value="all" ${selectedCompany==='all'?'selected':''}>Todas las empresas</option>${opts}</select></div></div>
@@ -695,7 +764,7 @@ function openActivity(id=null, preClient=null){
 }
 function activityForm(a={}, companyId='', clientId=''){
   const companies=visibleCompanies().map(c=>`<option value="${c.id}" ${companyId===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
-  return `<div class="field" id="companyFieldWrap"><label>Empresa</label><select id="actCompany"><option value="">Selecciona empresa</option>${companies}</select></div>${isAdmin()?`<div class="field"><label>Comercial asignado</label><select id="actAssignee"><option value="">Sin asignar</option>${teamMembers.filter(m=>m.role==='commercial').map(m=>`<option value="${m.user_id}" ${(a.assignedUserId||'')===m.user_id?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>`:''}<div class="field"><label>Cliente</label><input id="clientQuery" placeholder="Escribe para buscar o elige de la lista"><div id="clientPick" class="client-picker-list"></div><input type="hidden" id="actClient" value="${esc(clientId)}"></div><div id="clientWarning"></div><div id="followupCompanyNote" class="followup-company-note hidden">La empresa se asignará automáticamente según el cliente.</div><div class="field"><label>Tipo</label><select id="actType"><option value="first">Primera visita</option><option value="followup">Seguimiento</option></select></div><div id="parentWrap" class="field hidden"><label>Visita anterior</label><select id="actParent"></select></div><div class="field"><label>Estado</label><select id="actStatus"><option value="pending">Pendiente</option><option value="done">Realizada</option><option value="cancelled">Cancelada</option></select></div><div class="grid2" style="margin-bottom:0"><div class="field"><label>Fecha</label><input type="date" id="actDate" value="${esc(a.date||today())}"></div><div class="field"><label>Hora</label><input type="time" id="actTime" value="${esc(a.time||'09:00')}"></div></div><div class="field"><label>Modalidad</label><select id="actMode"><option>Presencial</option><option>Telefónica</option><option>Videollamada</option><option>Email</option></select></div><div class="field"><label>Lugar</label><input id="actPlace" value="${esc(a.place||'')}"><div id="mapsLink" style="margin-top:6px"></div></div><div id="dynamicFields"></div><button class="btn full primary" id="saveActivityBtn" type="button">${ICONS.check}<span>Guardar actividad</span></button>`;
+  return `<div class="field" id="companyFieldWrap"><label>Empresa</label><select id="actCompany"><option value="">Selecciona empresa</option>${companies}</select></div>${isAdmin()?`<div class="field"><label>Comercial asignado</label><select id="actAssignee"><option value="">Sin asignar</option>${teamMembers.map(m=>`<option value="${m.user_id}" ${(a.assignedUserId||'')===m.user_id?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>`:''}<div class="field"><label>Cliente</label><input id="clientQuery" placeholder="Escribe para buscar o elige de la lista"><div id="clientPick" class="client-picker-list"></div><input type="hidden" id="actClient" value="${esc(clientId)}"></div><div id="clientWarning"></div><div id="followupCompanyNote" class="followup-company-note hidden">La empresa se asignará automáticamente según el cliente.</div><div class="field"><label>Tipo</label><select id="actType"><option value="first">Primera visita</option><option value="followup">Seguimiento</option></select></div><div id="parentWrap" class="field hidden"><label>Visita anterior</label><select id="actParent"></select></div><div class="field"><label>Estado</label><select id="actStatus"><option value="pending">Pendiente</option><option value="done">Realizada</option><option value="cancelled">Cancelada</option></select></div><div class="grid2" style="margin-bottom:0"><div class="field"><label>Fecha</label><input type="date" id="actDate" value="${esc(a.date||today())}"></div><div class="field"><label>Hora</label><input type="time" id="actTime" value="${esc(a.time||'09:00')}"></div></div><div class="field"><label>Modalidad</label><select id="actMode"><option>Presencial</option><option>Telefónica</option><option>Videollamada</option><option>Email</option></select></div><div class="field"><label>Lugar</label><input id="actPlace" value="${esc(a.place||'')}"><div id="mapsLink" style="margin-top:6px"></div></div><div id="dynamicFields"></div><button class="btn full primary" id="saveActivityBtn" type="button">${ICONS.check}<span>Guardar actividad</span></button>`;
 }
 function bindActivityForm(){
   $('#actCompany')?.addEventListener('change',()=>{
@@ -1093,10 +1162,9 @@ async function notifyNewAssignments(){
   fresh.forEach(markAssignmentSeen);
   const first=fresh[0];
   const extra=fresh.length>1?` Además tienes ${fresh.length-1} visita(s) nueva(s).`:'';
-  await showNotice(
-    'Nueva visita programada',
-    `${clientName(first.clientId)} · ${fmtDate(first.date)}${first.time?' a las '+first.time:''}.${extra}`
-  );
+  const body=`${clientName(first.clientId)} · ${fmtDate(first.date)}${first.time?' a las '+first.time:''}.${extra}`;
+  await showSystemNotification('Nueva visita programada',body,'crm-visit-'+first.id);
+  await showNotice('Nueva visita programada',body);
 }
 async function pollCloudState(){
   if(!cloudReady||!currentProfile||cloudPollBusy||cloudSaveTimer)return;
@@ -1116,6 +1184,8 @@ async function pollCloudState(){
         render();
         setSyncStatus('Actualizado');
         await notifyNewAssignments();
+        await notifyNewMessages();
+        updateChatBadge();
       }
     }
   }catch(error){
@@ -1129,19 +1199,234 @@ function startCloudPolling(){
   cloudPollTimer=setInterval(pollCloudState,12000);
 }
 
+
+/* ---------- Mensajería, notificaciones y comisiones ---------- */
+function assignableMembers(){return teamMembers.slice().sort((a,b)=>(a.display_name||a.email||'').localeCompare(b.display_name||b.email||''))}
+function messageSeenKey(){return `crm_mds_message_seen_${currentUser?.id||'anon'}`}
+function getMessageSeen(){
+  try{return JSON.parse(localStorage.getItem(messageSeenKey())||'{}')}catch(e){return {}}
+}
+function setConversationSeen(peerId){
+  const seen=getMessageSeen();
+  const last=state.messages.filter(m=>isMessageBetween(m,currentUser?.id,peerId)).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)))[0];
+  if(last)seen[peerId]=last.id;
+  localStorage.setItem(messageSeenKey(),JSON.stringify(seen));
+  updateChatBadge();
+}
+function isMessageBetween(m,a,b){
+  return (m.senderId===a&&m.recipientId===b)||(m.senderId===b&&m.recipientId===a);
+}
+function unreadMessages(){
+  if(!currentUser)return [];
+  const seen=getMessageSeen();
+  return state.messages.filter(m=>m.recipientId===currentUser.id).filter(m=>{
+    const peer=m.senderId;
+    const conversation=state.messages.filter(x=>isMessageBetween(x,currentUser.id,peer)).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
+    const seenId=seen[peer];
+    if(!seenId)return true;
+    return conversation.findIndex(x=>x.id===m.id)>conversation.findIndex(x=>x.id===seenId);
+  });
+}
+function updateChatBadge(){
+  const n=unreadMessages().length;
+  const badge=$('#chatBadge');
+  if(badge){badge.textContent=n>99?'99+':String(n);badge.classList.toggle('show',n>0)}
+  const settings=$('#settingsUnreadCount');
+  if(settings)settings.textContent=n?` · ${n} nuevo${n===1?'':'s'}`:'';
+}
+async function requestNotificationPermission(){
+  if(!('Notification' in window))return showNotice('Notificaciones no disponibles','Este navegador no admite notificaciones del sistema.');
+  if(Notification.permission==='granted'){toast('Las notificaciones ya están activadas.');return true;}
+  const result=await Notification.requestPermission();
+  if(result==='granted'){toast('Notificaciones activadas.');return true;}
+  await showNotice('Permiso no concedido','Puedes activar las notificaciones desde los ajustes del navegador.');
+  return false;
+}
+async function showSystemNotification(title,body,tag='crm-mds'){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  try{
+    const reg=await navigator.serviceWorker?.ready;
+    if(reg)await reg.showNotification(title,{body,tag,icon:'./icons/icon-192.png',badge:'./icons/icon-192.png'});
+    else new Notification(title,{body,tag});
+  }catch(e){console.warn('No se pudo mostrar la notificación',e)}
+}
+function openMessenger(){
+  if(!currentUser)return;
+  const members=assignableMembers().filter(m=>m.user_id!==currentUser.id);
+  const seen=getMessageSeen();
+  const items=members.map(m=>{
+    const conv=state.messages.filter(x=>isMessageBetween(x,currentUser.id,m.user_id)).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)));
+    const last=conv[0];
+    const incoming=conv.filter(x=>x.recipientId===currentUser.id);
+    const unread=incoming.some(x=>{
+      if(!seen[m.user_id])return true;
+      const asc=conv.slice().reverse();
+      return asc.findIndex(y=>y.id===x.id)>asc.findIndex(y=>y.id===seen[m.user_id]);
+    });
+    return `<div class="conversation-item ${unread?'unread':''}" onclick="openConversation('${m.user_id}')">
+      <div class="row"><div style="min-width:0"><div class="conversation-name">${esc(m.display_name||m.email)} ${m.role==='admin'?'<span class="role-badge admin">Admin</span>':''}</div>
+      <div class="conversation-preview">${last?esc(last.text):'Iniciar conversación'}</div>
+      <div class="conversation-meta">${last?new Date(last.createdAt).toLocaleString('es-ES'):esc(m.email||'')}</div></div>${ICONS.chevron}</div>
+    </div>`;
+  }).join('');
+  openSheet('Mensajes','Comunicación interna del equipo',`
+    ${Notification.permission!=='granted'?`<div class="notification-permission"><div class="small">Activa las notificaciones para recibir avisos de mensajes y nuevas visitas.</div><button class="btn full" style="margin-top:9px;margin-bottom:0" onclick="requestNotificationPermission()">${ICONS.alertTri}<span>Activar notificaciones</span></button></div>`:''}
+    <div class="chat-layout">${items||empty('users','No hay otros usuarios','Crea otro usuario en Supabase para comenzar una conversación.')}</div>
+  `);
+}
+function openConversation(peerId){
+  const peer=teamMembers.find(m=>m.user_id===peerId);
+  if(!peer)return;
+  setConversationSeen(peerId);
+  const messages=state.messages.filter(m=>isMessageBetween(m,currentUser.id,peerId)).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
+  openSheet(peer.display_name||peer.email,peer.role==='admin'?'Administrador':'Equipo',`
+    <div class="chat-thread" id="chatThread">
+      ${messages.length?messages.map(m=>`<div class="chat-bubble ${m.senderId===currentUser.id?'mine':''}"><div class="chat-bubble-text">${esc(m.text)}</div><div class="chat-bubble-time">${new Date(m.createdAt).toLocaleString('es-ES',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div></div>`).join(''):empty('mail','Sin mensajes','Escribe el primer mensaje de esta conversación.')}
+    </div>
+    <div class="chat-compose"><textarea id="chatInput" placeholder="Escribe un mensaje..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage('${peerId}')}"></textarea><button class="chat-send" onclick="sendChatMessage('${peerId}')" aria-label="Enviar">${ICONS.chevron}</button></div>
+  `);
+  requestAnimationFrame(()=>{const t=$('#chatThread');if(t)t.scrollTop=t.scrollHeight;$('#chatInput')?.focus()});
+}
+function sendChatMessage(peerId){
+  const input=$('#chatInput');
+  const text=input?.value.trim();
+  if(!text)return;
+  state.messages.push({id:uid(),senderId:currentUser.id,recipientId:peerId,text,createdAt:new Date().toISOString()});
+  input.value='';
+  save();
+  openConversation(peerId);
+}
+async function notifyNewMessages(){
+  const list=unreadMessages();
+  if(!list.length)return;
+  const latest=list.sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt)))[0];
+  const sender=teamMembers.find(m=>m.user_id===latest.senderId);
+  await showSystemNotification(sender?.display_name||sender?.email||'Nuevo mensaje',latest.text,'crm-message-'+latest.id);
+  updateChatBadge();
+}
+function euro(value){return new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(Number(value)||0)}
+function commissionsFor(userId){return state.commissions.filter(c=>c.userId===userId).sort((a,b)=>String(b.date||b.createdAt).localeCompare(String(a.date||a.createdAt)))}
+function commissionTotals(userId){
+  const list=commissionsFor(userId);
+  return {total:list.reduce((s,c)=>s+Number(c.amount||0),0),paid:list.filter(c=>c.status==='paid').reduce((s,c)=>s+Number(c.amount||0),0),unpaid:list.filter(c=>c.status!=='paid').reduce((s,c)=>s+Number(c.amount||0),0),count:list.length};
+}
+function commissionCard(c,editable=false){
+  const user=teamMembers.find(m=>m.user_id===c.userId);
+  return `<div class="commission-card ${c.status==='paid'?'paid':'unpaid'}">
+    <div class="row"><div><div class="commission-amount">${euro(c.amount)}</div><div class="commission-concept">${esc(c.concept||'Comisión')}</div><div class="commission-meta">${esc(user?.display_name||user?.email||'')} · ${fmtDate(c.date)} · ${c.status==='paid'?'Cobrada':'Pendiente de cobro'}</div></div>${statusBadge(c.status==='paid'?'done':'pending')}</div>
+    ${c.notes?`<div class="small" style="margin-top:9px">${esc(c.notes)}</div>`:''}
+    ${editable?`<div class="actions"><button class="btn ${c.status==='paid'?'warn':'blue'}" onclick="toggleCommissionPaid('${c.id}')">${ICONS.check}<span>${c.status==='paid'?'Marcar pendiente':'Marcar cobrada'}</span></button><button class="btn danger" onclick="deleteCommission('${c.id}')">${ICONS.trash}<span>Eliminar</span></button></div>`:''}
+  </div>`;
+}
+function openCommissionsAdmin(userId='all'){
+  if(!isAdmin())return;
+  const members=assignableMembers();
+  const list=userId==='all'?state.commissions:commissionsFor(userId);
+  const total=list.reduce((s,c)=>s+Number(c.amount||0),0);
+  const paid=list.filter(c=>c.status==='paid').reduce((s,c)=>s+Number(c.amount||0),0);
+  const unpaid=total-paid;
+  openSheet('Comisiones','Control económico del equipo',`
+    <div class="money-summary"><div class="money-box"><b>${euro(paid)}</b><span>Cobradas</span></div><div class="money-box"><b>${euro(unpaid)}</b><span>Pendientes</span></div></div>
+    <div class="field"><label>Filtrar usuario</label><select onchange="openCommissionsAdmin(this.value)"><option value="all">Todo el equipo</option>${members.map(m=>`<option value="${m.user_id}" ${userId===m.user_id?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>
+    <button class="btn full primary" onclick="openCommissionForm('${userId==='all'?'':userId}')">${ICONS.plus}<span>Añadir comisión</span></button>
+    <div class="section-title" style="margin-top:16px">Movimientos</div>
+    <div>${list.length?list.sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(c=>commissionCard(c,true)).join(''):empty('inbox','Sin comisiones','Añade la primera comisión del equipo.')}</div>
+  `);
+}
+function openCommissionForm(userId=''){
+  if(!isAdmin())return;
+  openSheet('Nueva comisión','Asignar retribución',`
+    <div class="field"><label>Usuario</label><select id="commissionUser"><option value="">Selecciona usuario</option>${assignableMembers().map(m=>`<option value="${m.user_id}" ${userId===m.user_id?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>
+    <div class="field"><label>Concepto</label><input id="commissionConcept" placeholder="Venta, objetivo mensual, renovación..."></div>
+    <div class="grid2" style="margin-bottom:0"><div class="field"><label>Importe (€)</label><input id="commissionAmount" type="number" min="0" step="0.01" inputmode="decimal"></div><div class="field"><label>Fecha</label><input id="commissionDate" type="date" value="${today()}"></div></div>
+    <div class="field"><label>Estado</label><select id="commissionStatus"><option value="unpaid">Pendiente de cobro</option><option value="paid">Cobrada</option></select></div>
+    <div class="field"><label>Notas</label><textarea id="commissionNotes"></textarea></div>
+    <button class="btn full primary" onclick="saveCommission()">${ICONS.check}<span>Guardar comisión</span></button>
+  `);
+}
+function saveCommission(){
+  if(!isAdmin())return;
+  const userId=$('#commissionUser').value;
+  const amount=Number($('#commissionAmount').value);
+  if(!userId)return toast('Selecciona un usuario.');
+  if(!Number.isFinite(amount)||amount<=0)return toast('Introduce un importe válido.');
+  state.commissions.push({id:uid(),userId,concept:$('#commissionConcept').value.trim()||'Comisión',amount,date:$('#commissionDate').value||today(),status:$('#commissionStatus').value,notes:$('#commissionNotes').value.trim(),createdAt:new Date().toISOString(),createdBy:currentUser.id,paidAt:$('#commissionStatus').value==='paid'?new Date().toISOString():''});
+  save();openCommissionsAdmin(userId);toast('Comisión guardada.');
+}
+function toggleCommissionPaid(id){
+  if(!isAdmin())return;
+  const c=state.commissions.find(x=>x.id===id);if(!c)return;
+  c.status=c.status==='paid'?'unpaid':'paid';c.paidAt=c.status==='paid'?new Date().toISOString():'';
+  save();openCommissionsAdmin(c.userId);toast(c.status==='paid'?'Comisión marcada como cobrada.':'Comisión marcada como pendiente.');
+}
+async function deleteCommission(id){
+  if(!isAdmin())return;
+  const c=state.commissions.find(x=>x.id===id);if(!c)return;
+  if(!await showConfirm('Eliminar comisión','Se eliminará este movimiento de forma permanente.'))return;
+  state.commissions=state.commissions.filter(x=>x.id!==id);save();openCommissionsAdmin(c.userId);
+}
+function openMyCommissions(){
+  const totals=commissionTotals(currentUser.id);
+  const list=commissionsFor(currentUser.id);
+  openSheet('Mis comisiones','Estado de cobros',`
+    <div class="money-summary"><div class="money-box"><b>${euro(totals.paid)}</b><span>Cobradas</span></div><div class="money-box"><b>${euro(totals.unpaid)}</b><span>Pendientes</span></div></div>
+    ${list.length?list.map(c=>commissionCard(c,false)).join(''):empty('inbox','Sin comisiones','Todavía no tienes comisiones registradas.')}
+  `);
+}
+function adminDashboardMetrics(){
+  const members=assignableMembers();
+  const pending=state.activities.filter(a=>a.status==='pending');
+  const overdue=pending.filter(a=>a.date&&a.date<today());
+  const unassignedVisits=pending.filter(a=>!a.assignedUserId);
+  const unassignedClients=state.clients.filter(c=>{
+    const co=company(c.companyId);
+    return !(c.assignedUserIds||[]).length&&!(co.assignedUserIds||[]).length;
+  });
+  const unpaid=state.commissions.filter(c=>c.status!=='paid').reduce((s,c)=>s+Number(c.amount||0),0);
+  const productivity=members.length?Math.round(members.reduce((s,m)=>s+commercialStats(m).productivity,0)/members.length):0;
+  return {members,pending,overdue,unassignedVisits,unassignedClients,unpaid,productivity};
+}
+function openAdminDashboard(){
+  if(!isAdmin())return;
+  const m=adminDashboardMetrics();
+  const leaders=m.members.map(x=>({member:x,stats:commercialStats(x)})).sort((a,b)=>b.stats.productivity-a.stats.productivity);
+  const alerts=[];
+  if(m.overdue.length)alerts.push(`<div class="alert-item">${ICONS.alertTri}<div><b>${m.overdue.length} visita(s) atrasada(s)</b><span>Revisa fechas y responsables.</span></div></div>`);
+  if(m.unassignedVisits.length)alerts.push(`<div class="alert-item">${ICONS.alertTri}<div><b>${m.unassignedVisits.length} visita(s) sin responsable</b><span>Asígnalas desde la agenda o el historial.</span></div></div>`);
+  if(m.unassignedClients.length)alerts.push(`<div class="alert-item">${ICONS.alertTri}<div><b>${m.unassignedClients.length} cliente(s) sin comercial</b><span>Completa las asignaciones del equipo.</span></div></div>`);
+  if(m.unpaid>0)alerts.push(`<div class="alert-item">${ICONS.alertTri}<div><b>${euro(m.unpaid)} en comisiones pendientes</b><span>Actualiza los cobros cuando se abonen.</span></div></div>`);
+  openSheet('Panel de control','Administración avanzada',`
+    <div class="admin-dashboard-head"><div><div class="admin-dashboard-title">Centro de mando</div><div class="admin-dashboard-sub">CRM MDS · visión global</div></div><span class="role-badge admin">Admin</span></div>
+    <div class="admin-kpis">
+      <div class="admin-kpi positive"><b>${m.productivity}</b><span>Productividad media</span></div>
+      <div class="admin-kpi"><b>${m.pending.length}</b><span>Visitas pendientes</span></div>
+      <div class="admin-kpi attention"><b>${m.overdue.length}</b><span>Visitas atrasadas</span></div>
+      <div class="admin-kpi"><b>${euro(m.unpaid)}</b><span>Comisiones pendientes</span></div>
+    </div>
+    <div class="admin-quick">
+      <button class="btn" onclick="openActivity()">${ICONS.plus}<span>Nueva visita</span></button>
+      <button class="btn" onclick="openTeamAdmin()">${ICONS.users}<span>Asignaciones</span></button>
+      <button class="btn" onclick="openMessenger()">${ICONS.mail}<span>Mensajes</span></button>
+      <button class="btn" onclick="openCommissionsAdmin()">${ICONS.download}<span>Comisiones</span></button>
+    </div>
+    <div class="admin-section"><div class="section-title">Atención necesaria</div><div class="alert-list">${alerts.length?alerts.join(''):'<div class="empty-state"><div class="empty-title">Todo bajo control</div><div class="empty-sub">No hay alertas importantes en este momento.</div></div>'}</div></div>
+    <div class="admin-section"><div class="section-title">Rendimiento del equipo</div><div class="card">${leaders.map((x,i)=>`<div class="leader-row" onclick="openCommercialDetail('${x.member.user_id}')"><div class="leader-rank">${i+1}</div><div><div class="leader-name">${esc(x.member.display_name||x.member.email)} ${x.member.role==='admin'?'<span class="role-badge admin">Admin</span>':''}</div><div class="leader-sub">${x.stats.done} realizadas · ${x.stats.pending} pendientes · ${x.stats.overdue} atrasadas</div></div><div class="leader-score">${x.stats.productivity}</div></div>`).join('')}</div></div>
+  `);
+}
+
 /* ---------- Administración de equipo ---------- */
 function memberOptions(selected=''){
-  return teamMembers.filter(m=>m.role==='commercial').map(m=>`<option value="${m.user_id}" ${selected===m.user_id?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('');
+  return teamMembers.map(m=>`<option value="${m.user_id}" ${selected===m.user_id?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('');
 }
 function openTeamAdmin(selectedUserId=''){
   if(!isAdmin())return;
-  const commercials=teamMembers.filter(m=>m.role==='commercial');
+  const commercials=teamMembers;
   const selected=selectedUserId||commercials[0]?.user_id||'';
   const person=teamMembers.find(m=>m.user_id===selected);
   const companies=state.companies.map(c=>`<label class="assign-row"><input type="checkbox" data-company-assignment="${c.id}" ${(c.assignedUserIds||[]).includes(selected)?'checked':''}><span class="assign-row-content"><span class="assign-row-title">${esc(c.name)}</span><span class="assign-row-sub">${state.clients.filter(x=>x.companyId===c.id).length} clientes</span></span></label>`).join('');
   const clients=state.clients.slice().sort((a,b)=>clientName(a.id).localeCompare(clientName(b.id))).map(c=>`<label class="assign-row client-assignment-row"><input type="checkbox" data-client-assignment="${c.id}" ${(c.assignedUserIds||[]).includes(selected)?'checked':''}><span class="assign-row-content"><span class="assign-row-title">${esc(clientName(c.id))}</span><span class="assign-row-sub">${esc(company(c.companyId).name)}</span></span></label>`).join('');
   openSheet('Equipo y asignaciones','Administrador',`
-    <div class="field"><label>Comercial</label><select id="teamSelectedUser" onchange="openTeamAdmin(this.value)">${commercials.map(m=>`<option value="${m.user_id}" ${m.user_id===selected?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>
+    <div class="field"><label>Usuario asignable</label><select id="teamSelectedUser" onchange="openTeamAdmin(this.value)">${commercials.map(m=>`<option value="${m.user_id}" ${m.user_id===selected?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>
     ${person?`<div class="card"><div class="row"><div><div class="card-title">${esc(person.display_name||person.email)}</div><div class="card-sub">${esc(person.email||'')}</div></div><span class="role-badge">${esc(person.role)}</span></div></div>`:''}
     <div class="section-title">Empresas asignadas</div>
     <div class="assign-list">${companies||'<div class="pick-item">No hay empresas.</div>'}</div>
@@ -1199,7 +1484,7 @@ function commercialStats(member){
 }
 function openCommercialStats(){
   if(!isAdmin())return;
-  const commercials=teamMembers.filter(m=>m.role==='commercial');
+  const commercials=teamMembers;
   const cards=commercials.map(m=>{
     const s=commercialStats(m);
     return `<div class="card commercial-stat-card" onclick="openCommercialDetail('${m.user_id}')">
@@ -1212,7 +1497,7 @@ function openCommercialStats(){
     </div>`;
   }).join('');
   const total=state.activities.length,done=state.activities.filter(a=>a.status==='done').length,pending=state.activities.filter(a=>a.status==='pending').length;
-  openSheet('Estadísticas comerciales','Pulsa un comercial para ver el detalle',`
+  openSheet('Productividad del equipo','Pulsa un comercial para ver el detalle',`
     <div class="grid2"><div class="stat"><b>${commercials.length}</b><span>Comerciales</span></div><div class="stat"><b>${total}</b><span>Visitas</span></div><div class="stat"><b>${pending}</b><span>Pendientes</span></div><div class="stat"><b>${done}</b><span>Realizadas</span></div></div>
     <div class="list">${cards||empty('inbox','No hay comerciales','Crea usuarios comerciales en Supabase.')}</div>
   `);
@@ -1339,7 +1624,7 @@ async function enterApp(user){
     cloudReady=true;
     await saveCloudState();
   }
-  cloudReady=true; $('#authScreen').classList.add('hidden'); render(); setSyncStatus('Guardado'); startCloudPolling(); setTimeout(notifyNewAssignments,500);
+  cloudReady=true; $('#authScreen').classList.add('hidden'); render(); setSyncStatus('Guardado'); startCloudPolling(); setTimeout(async()=>{await notifyNewAssignments();await notifyNewMessages();updateChatBadge();},500);
 }
 async function signOutUser(){if(!supabaseClient)return;await saveCloudState();await supabaseClient.auth.signOut();location.reload();}
 
