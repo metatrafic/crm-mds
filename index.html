@@ -43,12 +43,74 @@ button,input,select,textarea{font:inherit;color:inherit}
 .app{width:100%;max-width:430px;height:100dvh;background:var(--surface);display:flex;flex-direction:column;position:relative;overflow:hidden;box-shadow:0 0 60px rgba(21,21,15,.10)}
 @media(max-width:600px){.app{max-width:none;box-shadow:none}}
 
-.header{height:calc(58px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);background:var(--surface);position:relative;flex:0 0 auto}
-.header-title{font-family:var(--mono);font-size:11px;letter-spacing:2.4px;text-transform:uppercase;font-weight:500;color:var(--ink)}
-.logo{position:absolute;left:14px;height:30px;width:auto;object-fit:contain}
-.top-action{position:absolute;right:12px;background:var(--ink);color:#fff;border:0;border-radius:10px;padding:9px 13px;font-family:var(--mono);font-size:9px;letter-spacing:1.2px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.header{
+  min-height:calc(62px + env(safe-area-inset-top));
+  padding:env(safe-area-inset-top) 10px 0;
+  display:grid;
+  grid-template-columns:minmax(48px,1fr) auto minmax(118px,1fr);
+  align-items:center;
+  gap:8px;
+  border-bottom:1px solid var(--line);
+  background:var(--surface);
+  position:relative;
+  flex:0 0 auto;
+}
+.header-left{display:flex;align-items:center;justify-content:flex-start;min-width:0}
+.header-center{display:flex;align-items:center;justify-content:center;min-width:0}
+.header-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0}
+.header-title{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:2.4px;
+  text-transform:uppercase;
+  font-weight:500;
+  color:var(--ink);
+  white-space:nowrap;
+}
+.logo{
+  position:static;
+  display:block;
+  width:auto;
+  max-width:54px;
+  height:34px;
+  object-fit:contain;
+}
+.header-icon-btn{
+  position:relative;
+  width:36px;
+  height:36px;
+  flex:0 0 36px;
+  border:1px solid var(--line);
+  background:var(--surface-2);
+  border-radius:11px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--ink-2);
+}
+.header-icon-btn svg{width:15px;height:15px}
+.top-action{
+  position:static;
+  flex:0 0 auto;
+  min-width:108px;
+  height:40px;
+  background:var(--ink);
+  color:#fff;
+  border:0;
+  border-radius:12px;
+  padding:0 14px;
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:1.1px;
+  text-transform:uppercase;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  white-space:nowrap;
+}
 .top-action svg{width:12px;height:12px}
-.top-action:active{opacity:.8}
+.top-action:active,.header-icon-btn:active{transform:scale(.97)}
 
 .content{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:16px 16px calc(100px + env(safe-area-inset-bottom));background:var(--surface)}
 .view{display:none;animation:fade .18s ease}
@@ -342,6 +404,30 @@ button,input,select,textarea{font:inherit;color:inherit}
 .notification-center-sub{font-family:var(--mono);font-size:8px;line-height:1.5;color:var(--ink-3);margin-top:4px}
 .notification-dot{position:absolute;right:-3px;top:-4px;width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid var(--surface);display:none}
 .notification-dot.show{display:block}
+
+@media(max-width:390px){
+  .header{
+    grid-template-columns:44px 1fr auto;
+    gap:5px;
+    padding-left:8px;
+    padding-right:8px;
+  }
+  .logo{max-width:42px;height:30px}
+  .header-title{font-size:10px;letter-spacing:1.8px}
+  .header-actions{gap:5px}
+  .header-icon-btn{width:34px;height:34px;flex-basis:34px}
+  .top-action{min-width:42px;width:42px;height:36px;padding:0;border-radius:11px}
+  .top-action span{display:none}
+  .top-action svg{width:14px;height:14px}
+}
+@media(max-width:330px){
+  .header{grid-template-columns:36px 1fr auto}
+  .logo{max-width:34px;height:26px}
+  .header-title{font-size:9px;letter-spacing:1.3px}
+  .header-icon-btn{width:32px;height:32px;flex-basis:32px}
+  .top-action{width:36px;min-width:36px;height:34px}
+}
+
 </style>
 </head>
 <body>
@@ -361,12 +447,22 @@ button,input,select,textarea{font:inherit;color:inherit}
 </div>
 <div class="app">
   <div class="header">
-    <img class="logo" src="https://www.matriculadosdelsur.com/wp-content/uploads/2025/10/grupomds-e1705059389337-125x97.png" onerror="this.style.display='none'">
-    <div class="header-title">CRM MDS</div><div class="sync-pill" id="syncPill">Sincronizando</div>
-    <button class="icon-btn" id="notificationCenterBtn" type="button" onclick="openNotificationCenter()" aria-label="Notificaciones" style="position:absolute;right:92px">
-      ${ICONS.alertTri}<span class="notification-dot" id="notificationDot"></span>
-    </button>
-    <button class="top-action" onclick="openActivity()" id="topActionBtn"></button>
+    <div class="header-left">
+      <img class="logo" src="https://www.matriculadosdelsur.com/wp-content/uploads/2025/10/grupomds-e1705059389337-125x97.png" onerror="this.style.display='none'" alt="MDS">
+    </div>
+    <div class="header-center">
+      <div class="header-title">CRM MDS</div>
+    </div>
+    <div class="header-actions">
+      <button class="header-icon-btn" id="notificationCenterBtn" type="button" onclick="openNotificationCenter()" aria-label="Notificaciones">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+          <path d="M10 21h4"/>
+        </svg>
+        <span class="notification-dot" id="notificationDot"></span>
+      </button>
+      <button class="top-action" onclick="openActivity()" id="topActionBtn"></button>
+    </div>
   </div>
   <main class="content" id="content">
     <section id="view-inicio" class="view active"></section>
@@ -525,7 +621,7 @@ function toast(msg){
 }
 function showNotice(title,msg){
   return new Promise(res=>{
-    $('#confirmTitle').innerHTML=`${ICONS.alertTri}<span>${esc(title)}</span>`;
+    $('#confirmTitle').innerHTML=`<span>${esc(title)}</span>`;
     $('#confirmBody').textContent=msg;
     $('#confirmActions').innerHTML=`<button class="btn primary full" id="confirmOk">Entendido</button>`;
     $('#confirmOverlay').classList.add('show');
@@ -534,7 +630,7 @@ function showNotice(title,msg){
 }
 function showConfirm(title,msg){
   return new Promise(res=>{
-    $('#confirmTitle').innerHTML=`${ICONS.alertTri}<span>${esc(title)}</span>`;
+    $('#confirmTitle').innerHTML=`<span>${esc(title)}</span>`;
     $('#confirmBody').textContent=msg;
     $('#confirmActions').innerHTML=`<div class="actions" style="margin-top:0"><button class="btn" id="confirmCancel">Cancelar</button><button class="btn danger" id="confirmYes">Confirmar</button></div>`;
     $('#confirmOverlay').classList.add('show');
@@ -720,7 +816,7 @@ function openClient(id){
     </div>
     <div class="actions">
       <a class="btn" href="tel:${esc(c.mobile||c.phone||'')}">${ICONS.phone}<span>Llamar</span></a>
-      <a class="btn" href="mailto:${esc(c.email||'')}">${ICONS.mail}<span>Email</span></a>
+      <a class="btn" href="mailto:${esc(c.email||'')}"><span>Email</span></a>
       <a class="btn" href="https://wa.me/${String(c.mobile||c.phone||'').replace(/\D/g,'')}" target="_blank">${ICONS.whatsapp}<span>WhatsApp</span></a>
       <a class="btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.address||c.fiscalName||'')}" target="_blank">${ICONS.map}<span>Maps</span></a>
     </div>
@@ -1240,7 +1336,7 @@ function openNotificationCenter(){
     <div class="notification-center-list">
       ${notices.length?notices.map(n=>`<div class="notification-center-item ${n.kind||''}"><div class="notification-center-title">${esc(n.title)}</div><div class="notification-center-sub">${esc(n.body)}</div></div>`).join(''):empty('check','Sin avisos','No hay visitas vencidas, nuevas asignaciones ni comisiones pendientes.')}
     </div>
-    ${Notification.permission!=='granted'?`<button class="btn full primary" style="margin-top:12px" onclick="requestNotificationPermission()">${ICONS.alertTri}<span>Activar notificaciones</span></button>`:''}
+    ${Notification.permission!=='granted'?`<button class="btn full primary" style="margin-top:12px" onclick="requestNotificationPermission()"><span>Activar notificaciones</span></button>`:''}
   `);
 }
 
@@ -1445,10 +1541,10 @@ function openAdminDashboard(){
   const m=adminDashboardMetrics();
   const leaders=m.members.map(x=>({member:x,stats:commercialStats(x)})).sort((a,b)=>b.stats.productivity-a.stats.productivity);
   const alerts=[];
-  if(m.overdue.length)alerts.push(`<div class="alert-item">${ICONS.alertTri}<div><b>${m.overdue.length} visita(s) atrasada(s)</b><span>Revisa fechas y responsables.</span></div></div>`);
-  if(m.unassignedVisits.length)alerts.push(`<div class="alert-item">${ICONS.alertTri}<div><b>${m.unassignedVisits.length} visita(s) sin responsable</b><span>Asígnalas desde la agenda o el historial.</span></div></div>`);
-  if(m.unassignedClients.length)alerts.push(`<div class="alert-item">${ICONS.alertTri}<div><b>${m.unassignedClients.length} cliente(s) sin comercial</b><span>Completa las asignaciones del equipo.</span></div></div>`);
-  if(m.unpaid>0)alerts.push(`<div class="alert-item">${ICONS.alertTri}<div><b>${euro(m.unpaid)} en comisiones pendientes</b><span>Actualiza los cobros cuando se abonen.</span></div></div>`);
+  if(m.overdue.length)alerts.push(`<div class="alert-item"><div><b>${m.overdue.length} visita(s) atrasada(s)</b><span>Revisa fechas y responsables.</span></div></div>`);
+  if(m.unassignedVisits.length)alerts.push(`<div class="alert-item"><div><b>${m.unassignedVisits.length} visita(s) sin responsable</b><span>Asígnalas desde la agenda o el historial.</span></div></div>`);
+  if(m.unassignedClients.length)alerts.push(`<div class="alert-item"><div><b>${m.unassignedClients.length} cliente(s) sin comercial</b><span>Completa las asignaciones del equipo.</span></div></div>`);
+  if(m.unpaid>0)alerts.push(`<div class="alert-item"><div><b>${euro(m.unpaid)} en comisiones pendientes</b><span>Actualiza los cobros cuando se abonen.</span></div></div>`);
   openSheet('Panel de control','Administración avanzada',`
     <div class="admin-dashboard-head"><div><div class="admin-dashboard-title">Centro de mando</div><div class="admin-dashboard-sub">CRM MDS · visión global</div></div><span class="role-badge admin">Admin</span></div>
     <div class="admin-kpis">
