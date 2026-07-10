@@ -3,7 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#F6F5F1">
+<meta name="theme-color" content="#15150F">
+<meta name="application-name" content="CRM MDS">
+<meta name="description" content="CRM comercial de Grupo MDS">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CRM MDS">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
 <title>CRM MDS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,27 +33,29 @@
   --shadow-sheet:0 -20px 60px rgba(21,21,15,.18);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
-body{font-family:var(--sans);background:var(--bg);color:var(--ink);height:100dvh;overflow:hidden;display:flex;justify-content:center}
+html,body{height:100%;overscroll-behavior:none}
+body{font-family:var(--sans);background:var(--ink);color:var(--ink);height:100dvh;overflow:hidden;display:flex;justify-content:center;padding:0;touch-action:manipulation}
+@media(display-mode:standalone){body{user-select:none;-webkit-user-select:none}}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 
 .app{width:100%;max-width:430px;height:100dvh;background:var(--surface);display:flex;flex-direction:column;position:relative;overflow:hidden;box-shadow:0 0 60px rgba(21,21,15,.10)}
+@media(max-width:600px){.app{max-width:none;box-shadow:none}}
 
-.header{height:58px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);background:var(--surface);position:relative;flex:0 0 auto}
+.header{height:calc(58px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--line);background:var(--surface);position:relative;flex:0 0 auto}
 .header-title{font-family:var(--mono);font-size:11px;letter-spacing:2.4px;text-transform:uppercase;font-weight:500;color:var(--ink)}
 .logo{position:absolute;left:14px;height:30px;width:auto;object-fit:contain}
 .top-action{position:absolute;right:12px;background:var(--ink);color:#fff;border:0;border-radius:10px;padding:9px 13px;font-family:var(--mono);font-size:9px;letter-spacing:1.2px;text-transform:uppercase;display:flex;align-items:center;gap:6px}
 .top-action svg{width:12px;height:12px}
 .top-action:active{opacity:.8}
 
-.content{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 100px;background:var(--surface)}
+.content{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:16px 16px calc(100px + env(safe-area-inset-bottom));background:var(--surface)}
 .view{display:none;animation:fade .18s ease}
 .view.active{display:block}
 @keyframes fade{from{opacity:.6;transform:translateY(4px)}to{opacity:1;transform:none}}
 
-.nav{position:absolute;left:12px;right:12px;bottom:14px;height:64px;background:rgba(255,255,255,.96);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:20px;display:flex;align-items:center;justify-content:space-around;box-shadow:var(--shadow-float);z-index:50}
+.nav{position:absolute;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));height:64px;background:rgba(255,255,255,.96);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:20px;display:flex;align-items:center;justify-content:space-around;box-shadow:var(--shadow-float);z-index:50}
 .nav button{background:none;border:0;color:var(--ink-3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 4px;border-radius:14px;flex:1;height:48px;transition:background .15s,color .15s}
 .nav button svg{width:18px;height:18px}
 .nav button span{font-family:var(--mono);font-size:7.5px;letter-spacing:.8px;text-transform:uppercase}
@@ -144,7 +156,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 .sheet{position:fixed;inset:0;background:rgba(21,21,15,.42);display:none;align-items:flex-end;justify-content:center;z-index:100}
 .sheet.show{display:flex}
-.panel{width:100%;max-width:430px;max-height:92dvh;background:var(--surface);border-radius:22px 22px 0 0;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-sheet)}
+.panel{width:100%;max-width:430px;max-height:calc(92dvh - env(safe-area-inset-top));background:var(--surface);border-radius:22px 22px 0 0;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow-sheet)}
+.panel-body{padding-bottom:calc(26px + env(safe-area-inset-bottom))!important}
 .panel-head{padding:17px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start}
 .panel-title{font-family:var(--mono);font-size:11px;letter-spacing:1.6px;text-transform:uppercase}
 .panel-sub{font-size:12px;color:var(--ink-2);margin-top:4px}
@@ -187,7 +200,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .conflict-opt.active{background:var(--ink);color:#fff;border-color:var(--ink)}
 
 
-.auth-screen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center;padding:22px}
+.auth-screen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;align-items:center;justify-content:center;padding:calc(22px + env(safe-area-inset-top)) 22px calc(22px + env(safe-area-inset-bottom))}
 .auth-screen.hidden{display:none!important}
 .auth-card{width:100%;max-width:390px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:var(--shadow-float)}
 .auth-brand{font-family:var(--mono);font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
@@ -206,6 +219,21 @@ button,input,select,textarea{font:inherit;color:inherit}
   .day{min-height:50px}
   .hero-num{font-size:29px}
 }
+
+.install-banner{position:fixed;z-index:900;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translate(-50%,18px);width:min(calc(100% - 24px),406px);background:var(--ink);color:#fff;border-radius:16px;padding:14px;box-shadow:var(--shadow-float);display:none;align-items:center;gap:12px;opacity:0;transition:.2s ease}
+.install-banner.show{display:flex;opacity:1;transform:translate(-50%,0)}
+.install-icon{width:42px;height:42px;border-radius:12px;flex:0 0 auto}
+.install-copy{min-width:0;flex:1}
+.install-copy b{display:block;font-size:13px;margin-bottom:2px}
+.install-copy span{display:block;font-family:var(--mono);font-size:8.5px;line-height:1.45;color:rgba(255,255,255,.65)}
+.install-actions{display:flex;gap:6px;align-items:center}
+.install-actions button{border:0;border-radius:9px;padding:9px 10px;font-family:var(--mono);font-size:8px;letter-spacing:.7px;text-transform:uppercase}
+.install-now{background:#fff;color:var(--ink)}
+.install-close{background:rgba(255,255,255,.12);color:#fff;width:34px;padding:9px 0!important}
+.offline-pill{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);z-index:1200;background:var(--amber-soft);color:var(--amber);border:1px solid rgba(148,98,11,.25);border-radius:999px;padding:6px 10px;font-family:var(--mono);font-size:8px;letter-spacing:.7px;text-transform:uppercase;display:none}
+.offline-pill.show{display:block}
+@media(display-mode:standalone){.install-banner{display:none!important}}
+
 </style>
 </head>
 <body>
@@ -242,6 +270,15 @@ button,input,select,textarea{font:inherit;color:inherit}
 <div class="sheet" id="sheet"><div class="panel"><div class="panel-head"><div><div class="panel-title" id="sheetTitle"></div><div class="panel-sub" id="sheetSub"></div></div><button class="close" id="sheetCloseBtn"></button></div><div class="panel-body" id="sheetBody"></div></div></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-box"><div class="confirm-title" id="confirmTitle"></div><div class="confirm-body" id="confirmBody"></div><div id="confirmActions"></div></div></div>
 <div class="toast" id="toast"></div>
+<div class="offline-pill" id="offlinePill">Sin conexión · cambios pendientes</div>
+<div class="install-banner" id="installBanner" role="dialog" aria-label="Instalar CRM MDS">
+  <img class="install-icon" src="./icons/icon-192.png" alt="">
+  <div class="install-copy"><b>Instalar CRM MDS</b><span id="installCopy">Añádela a tu pantalla de inicio y úsala como una aplicación.</span></div>
+  <div class="install-actions">
+    <button class="install-now" id="installNow" type="button">Instalar</button>
+    <button class="install-close" id="installClose" type="button" aria-label="Cerrar">×</button>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script>
@@ -441,6 +478,7 @@ function renderAjustes(){
   const opts=state.companies.map(c=>`<option value="${c.id}" ${selectedCompany===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
   $('#view-ajustes').innerHTML=`<div class="section-title">Ajustes</div>
   <div class="card"><div class="settings-card-title">${ICONS.users}<span>Sesión</span></div><div class="user-card" style="margin-top:10px">${esc(currentUser?.email||'')}</div><button class="btn full" style="margin-top:12px;margin-bottom:0" onclick="signOutUser()">Cerrar sesión</button></div>
+  <div class="card" id="pwaSettingsCard"><div class="settings-card-title">${ICONS.download}<span>Aplicación móvil</span></div><div class="small" style="margin-top:10px" id="pwaSettingsText">Puedes instalar CRM MDS en la pantalla de inicio.</div><button class="btn full primary" id="pwaSettingsButton" style="margin-top:12px;margin-bottom:0" onclick="requestAppInstall()">${ICONS.download}<span>Instalar aplicación</span></button></div>
   <div class="card"><div class="settings-card-title">${ICONS.building}<span>Empresa activa</span></div><div class="field" style="margin-top:12px;margin-bottom:0"><select onchange="selectedCompany=this.value;render()"><option value="all" ${selectedCompany==='all'?'selected':''}>Todas las empresas</option>${opts}</select></div></div>
   <div class="settings-group"><div class="section-title">Copias de seguridad</div>
     <button class="btn full primary" onclick="exportJSON()">${ICONS.download}<span>Descargar copia completa (JSON)</span></button>
@@ -754,6 +792,85 @@ async function enterApp(user){
   cloudReady=true; $('#authScreen').classList.add('hidden'); render(); setSyncStatus('Guardado');
 }
 async function signOutUser(){if(!supabaseClient)return;await saveCloudState();await supabaseClient.auth.signOut();location.reload();}
+
+let deferredInstallPrompt=null;
+const isStandalone=()=>window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
+function updateOnlineState(){
+  const pill=$('#offlinePill');
+  if(pill)pill.classList.toggle('show',!navigator.onLine);
+}
+function updatePwaSettings(){
+  const text=$('#pwaSettingsText'),button=$('#pwaSettingsButton');
+  if(!text||!button)return;
+  if(isStandalone()){
+    text.textContent='CRM MDS ya está instalada en este dispositivo.';
+    button.classList.add('hidden');
+  }else if(isIOS()){
+    text.textContent='En Safari, pulsa Compartir y después “Añadir a pantalla de inicio”.';
+    button.querySelector('span').textContent='Ver instrucciones';
+    button.classList.remove('hidden');
+  }else{
+    text.textContent='Instala CRM MDS para abrirla a pantalla completa desde el icono del móvil.';
+    button.querySelector('span').textContent='Instalar aplicación';
+    button.classList.remove('hidden');
+  }
+}
+function showInstallBanner(){
+  if(isStandalone()||localStorage.getItem('crm_mds_install_dismissed')==='1')return;
+  const banner=$('#installBanner'),copy=$('#installCopy'),button=$('#installNow');
+  if(!banner)return;
+  if(isIOS()){
+    copy.textContent='En Safari: pulsa Compartir y “Añadir a pantalla de inicio”.';
+    button.textContent='Cómo hacerlo';
+  }else if(!deferredInstallPrompt){
+    return;
+  }
+  banner.classList.add('show');
+}
+async function requestAppInstall(){
+  if(isStandalone()){toast('La aplicación ya está instalada.');return;}
+  if(isIOS()){
+    await showNotice('Instalar en iPhone o iPad','Abre esta web en Safari, pulsa el botón Compartir y elige “Añadir a pantalla de inicio”.');
+    return;
+  }
+  if(!deferredInstallPrompt){
+    toast('Abre el menú del navegador y selecciona “Instalar aplicación” o “Añadir a pantalla de inicio”.');
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  const result=await deferredInstallPrompt.userChoice;
+  if(result.outcome==='accepted')toast('Aplicación instalada.');
+  deferredInstallPrompt=null;
+  $('#installBanner')?.classList.remove('show');
+  updatePwaSettings();
+}
+window.addEventListener('beforeinstallprompt',event=>{
+  event.preventDefault();
+  deferredInstallPrompt=event;
+  setTimeout(showInstallBanner,1200);
+  updatePwaSettings();
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  $('#installBanner')?.classList.remove('show');
+  localStorage.removeItem('crm_mds_install_dismissed');
+  updatePwaSettings();
+  toast('CRM MDS instalada correctamente.');
+});
+window.addEventListener('online',updateOnlineState);
+window.addEventListener('offline',updateOnlineState);
+$('#installNow')?.addEventListener('click',requestAppInstall);
+$('#installClose')?.addEventListener('click',()=>{
+  $('#installBanner')?.classList.remove('show');
+  localStorage.setItem('crm_mds_install_dismissed','1');
+});
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.error));
+}
+updateOnlineState();
+setTimeout(()=>{if(isIOS())showInstallBanner();updatePwaSettings();},1400);
+
 initApp();
 </script>
 </body></html>
