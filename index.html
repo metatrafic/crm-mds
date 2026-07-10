@@ -294,6 +294,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 .followup-cta{margin-top:10px}
 .followup-note{font-family:var(--mono);font-size:8px;line-height:1.5;color:var(--ink-3);margin-top:6px}
+
+.followup-company-note{font-family:var(--mono);font-size:8px;color:var(--ink-3);line-height:1.5;margin:-4px 0 10px}
 </style>
 </head>
 <body>
@@ -427,7 +429,13 @@ async function saveCloudState(){
 function setSyncStatus(text,isError=false){const el=$('#syncPill'); if(!el)return; el.textContent=text; el.classList.add('show'); el.classList.toggle('error',isError); clearTimeout(setSyncStatus._t); if(!isError)setSyncStatus._t=setTimeout(()=>el.classList.remove('show'),1600);}
 function esc(s){return String(s??'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
 function fmtDate(d){if(!d)return ''; const [y,m,day]=String(d).split('-'); return day?`${day}/${m}/${y}`:'';}
-function today(){return new Date().toISOString().slice(0,10)}
+function localISODate(d=new Date()){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function today(){return localISODate()}
 function company(id){return state.companies.find(c=>c.id===id)||{name:'Sin empresa',color:'#999990'};}
 function client(id){return state.clients.find(c=>c.id===id);}
 function clientName(id){const c=client(id);return c?(c.fiscalName||c.commercialName||'Cliente sin nombre'):'Cliente eliminado'}
@@ -576,7 +584,7 @@ function renderHistorial(){const arr=visibleActivities().slice().sort(sortDateDe
 /* ---------- Calendario ---------- */
 function renderCalendar(){
   const y=calDate.getFullYear(), m=calDate.getMonth(); const first=new Date(y,m,1); const start=new Date(first); start.setDate(first.getDate()-((first.getDay()+6)%7)); const cells=[];
-  for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i); const iso=d.toISOString().slice(0,10); const acts=visibleActivities().filter(a=>a.date===iso); const colors=[...new Set(acts.map(a=>company(a.companyId).color))]; cells.push(`<div class="day ${d.getMonth()!==m?'out':''} ${iso===today()?'today':''}" onclick="openDay('${iso}')"><div class="day-num">${d.getDate()}</div><div class="points">${colors.map(c=>`<span class="point" style="background:${c}"></span>`).join('')}</div></div>`)}
+  for(let i=0;i<42;i++){const d=new Date(start);d.setDate(start.getDate()+i); const iso=localISODate(d); const acts=visibleActivities().filter(a=>a.date===iso); const colors=[...new Set(acts.map(a=>company(a.companyId).color))]; cells.push(`<div class="day ${d.getMonth()!==m?'out':''} ${iso===today()?'today':''}" onclick="openDay('${iso}')"><div class="day-num">${d.getDate()}</div><div class="points">${colors.map(c=>`<span class="point" style="background:${c}"></span>`).join('')}</div></div>`)}
   $('#view-calendario').innerHTML=`<div class="calendar-head"><button class="icon-btn" onclick="calDate.setMonth(calDate.getMonth()-1);renderCalendar()">${ICONS.chevronLeft}</button><div class="calendar-title">${calDate.toLocaleDateString('es-ES',{month:'long',year:'numeric'})}</div><button class="icon-btn" onclick="calDate.setMonth(calDate.getMonth()+1);renderCalendar()">${ICONS.chevron}</button></div><div class="cal"><div class="cal-week">${['L','M','X','J','V','S','D'].map(x=>`<div>${x}</div>`).join('')}</div><div class="cal-grid">${cells.join('')}</div></div>`;
 }
 
@@ -659,7 +667,7 @@ function openActivity(id=null, preClient=null){
 }
 function activityForm(a={}, companyId='', clientId=''){
   const companies=visibleCompanies().map(c=>`<option value="${c.id}" ${companyId===c.id?'selected':''}>${esc(c.name)}</option>`).join('');
-  return `<div class="field"><label>Empresa</label><select id="actCompany"><option value="">Selecciona empresa</option>${companies}</select></div>${isAdmin()?`<div class="field"><label>Comercial asignado</label><select id="actAssignee"><option value="">Sin asignar</option>${teamMembers.filter(m=>m.role==='commercial').map(m=>`<option value="${m.user_id}" ${(a.assignedUserId||'')===m.user_id?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>`:''}<div class="field"><label>Cliente</label><input id="clientQuery" placeholder="Escribe para buscar o elige de la lista"><div id="clientPick" class="client-picker-list"></div><input type="hidden" id="actClient" value="${esc(clientId)}"></div><div id="clientWarning"></div><div class="field"><label>Tipo</label><select id="actType"><option value="first">Primera visita</option><option value="followup">Seguimiento</option></select></div><div id="parentWrap" class="field hidden"><label>Visita anterior obligatoria</label><select id="actParent"></select></div><div class="field"><label>Estado</label><select id="actStatus"><option value="pending">Pendiente</option><option value="done">Realizada</option><option value="cancelled">Cancelada</option></select></div><div class="grid2" style="margin-bottom:0"><div class="field"><label>Fecha</label><input type="date" id="actDate" value="${esc(a.date||today())}"></div><div class="field"><label>Hora</label><input type="time" id="actTime" value="${esc(a.time||'09:00')}"></div></div><div class="field"><label>Modalidad</label><select id="actMode"><option>Presencial</option><option>Telefónica</option><option>Videollamada</option><option>Email</option></select></div><div class="field"><label>Lugar</label><input id="actPlace" value="${esc(a.place||'')}"><div id="mapsLink" style="margin-top:6px"></div></div><div id="dynamicFields"></div><button class="btn full primary" id="saveActivityBtn" type="button">${ICONS.check}<span>Guardar actividad</span></button>`;
+  return `<div class="field" id="companyFieldWrap"><label>Empresa</label><select id="actCompany"><option value="">Selecciona empresa</option>${companies}</select></div>${isAdmin()?`<div class="field"><label>Comercial asignado</label><select id="actAssignee"><option value="">Sin asignar</option>${teamMembers.filter(m=>m.role==='commercial').map(m=>`<option value="${m.user_id}" ${(a.assignedUserId||'')===m.user_id?'selected':''}>${esc(m.display_name||m.email)}</option>`).join('')}</select></div>`:''}<div class="field"><label>Cliente</label><input id="clientQuery" placeholder="Escribe para buscar o elige de la lista"><div id="clientPick" class="client-picker-list"></div><input type="hidden" id="actClient" value="${esc(clientId)}"></div><div id="clientWarning"></div><div id="followupCompanyNote" class="followup-company-note hidden">La empresa se asignará automáticamente según el cliente.</div><div class="field"><label>Tipo</label><select id="actType"><option value="first">Primera visita</option><option value="followup">Seguimiento</option></select></div><div id="parentWrap" class="field hidden"><label>Visita anterior</label><select id="actParent"></select></div><div class="field"><label>Estado</label><select id="actStatus"><option value="pending">Pendiente</option><option value="done">Realizada</option><option value="cancelled">Cancelada</option></select></div><div class="grid2" style="margin-bottom:0"><div class="field"><label>Fecha</label><input type="date" id="actDate" value="${esc(a.date||today())}"></div><div class="field"><label>Hora</label><input type="time" id="actTime" value="${esc(a.time||'09:00')}"></div></div><div class="field"><label>Modalidad</label><select id="actMode"><option>Presencial</option><option>Telefónica</option><option>Videollamada</option><option>Email</option></select></div><div class="field"><label>Lugar</label><input id="actPlace" value="${esc(a.place||'')}"><div id="mapsLink" style="margin-top:6px"></div></div><div id="dynamicFields"></div><button class="btn full primary" id="saveActivityBtn" type="button">${ICONS.check}<span>Guardar actividad</span></button>`;
 }
 function bindActivityForm(){
   $('#actCompany')?.addEventListener('change',()=>{
@@ -667,7 +675,7 @@ function bindActivityForm(){
     if(selected&&selected.companyId!==$('#actCompany').value){$('#actClient').value='';$('#clientQuery').value='';$('#actPlace').value='';$('#mapsLink').innerHTML='';}
     refreshClientPicker(); refreshActivityForm();
   });
-  ['actType','actStatus','actParent'].forEach(id=>$('#'+id)?.addEventListener('change',refreshActivityForm));
+  ['actType','actStatus','actParent','actAssignee'].forEach(id=>$('#'+id)?.addEventListener('change',refreshActivityForm));
   $('#clientQuery')?.addEventListener('input',()=>{$('#actClient').value='';refreshClientPicker();refreshActivityForm();});
   $('#saveActivityBtn')?.addEventListener('click',saveActivity);
   const a=activityEditId?state.activities.find(x=>x.id===activityEditId):null;
@@ -676,10 +684,11 @@ function bindActivityForm(){
 }
 function refreshClientPicker(){
   const co=$('#actCompany')?.value||'';
+  const type=$('#actType')?.value||'first';
   const q=$('#clientQuery')?.value||'';
   const assignee=isAdmin()?($('#actAssignee')?.value||''):(currentUser?.id||'');
   const source=isAdmin()?clientsForMember(assignee):visibleClients();
-  const arr=source.filter(c=>(!co||c.companyId===co)&&matchesClient(c,q)).sort((a,b)=>(a.order??999999)-(b.order??999999));
+  const arr=source.filter(c=>(type==='followup'||!co||c.companyId===co)&&matchesClient(c,q)).sort((a,b)=>(a.order??999999)-(b.order??999999));
   const selectedId=$('#actClient')?.value||'';
   if(selectedId&&!arr.some(c=>c.id===selectedId)){
     $('#actClient').value='';
@@ -691,23 +700,74 @@ function refreshClientPicker(){
 }
 function selectClientForActivity(id, warn=true){const c=client(id); if(!c)return; $('#actClient').value=id; $('#actCompany').value=c.companyId; $('#clientQuery').value=c.fiscalName||c.commercialName||''; $('#actPlace').value=$('#actPlace').value||c.address||''; $('#mapsLink').innerHTML=c.address?`<a target="_blank" class="small" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.address)}">Abrir en Google Maps</a>`:''; if(c.alertMsg&&warn)showNotice('Aviso de este cliente',c.alertMsg); refreshClientPicker(); refreshActivityForm();}
 function refreshActivityForm(){
-  const currentClientId=$('#actClient')?.value||'';
-  const selectedCompanyId=$('#actCompany')?.value||'';
-  const selectedAssignee=isAdmin()?($('#actAssignee')?.value||''):(currentUser?.id||'');
-  if(currentClientId){
-    const allowed=(isAdmin()?clientsForMember(selectedAssignee):visibleClients()).some(c=>c.id===currentClientId&&(!selectedCompanyId||c.companyId===selectedCompanyId));
+  const a=activityEditId?state.activities.find(x=>x.id===activityEditId):null;
+  let cid=$('#actClient')?.value||'';
+  let type=$('#actType')?.value||'first';
+  const status=$('#actStatus')?.value||'pending';
+  const assignee=isAdmin()?($('#actAssignee')?.value||''):(currentUser?.id||'');
+
+  if(cid&&!a){
+    type=hasFirst(cid)?'followup':'first';
+    $('#actType').value=type;
+  }
+
+  const selectedClient=client(cid);
+  if(type==='followup'&&selectedClient&&$('#actCompany')){
+    $('#actCompany').value=selectedClient.companyId||'';
+  }
+  $('#companyFieldWrap')?.classList.toggle('hidden',type==='followup');
+  $('#followupCompanyNote')?.classList.toggle('hidden',type!=='followup');
+
+  if(cid){
+    const allowed=(isAdmin()?clientsForMember(assignee):visibleClients()).some(c=>c.id===cid);
     if(!allowed){
       $('#actClient').value='';
       $('#clientQuery').value='';
+      cid='';
     }
   }
-  refreshClientPicker();const cid=$('#actClient')?.value; const a=activityEditId?state.activities.find(x=>x.id===activityEditId):null; if(cid&&!a){$('#actType').value=hasFirst(cid)?'followup':'first'} const type=$('#actType')?.value; const status=$('#actStatus')?.value; $('#parentWrap').classList.toggle('hidden',type!=='followup'); if(type==='followup'&&cid){let parents=state.activities.filter(x=>x.clientId===cid&&x.id!==activityEditId&&canBeParent(x,activityEditId)); const cur=a?.parentId; if(cur&&!parents.some(p=>p.id===cur)){const p=state.activities.find(x=>x.id===cur);if(p)parents.unshift(p)} $('#actParent').innerHTML='<option value="">Selecciona visita anterior</option>'+parents.map(p=>`<option value="${p.id}" ${cur===p.id?'selected':''}>${fmtDate(p.date)} ${p.time||''} · ${p.type==='first'?'Primera':'Seguimiento'} · ${esc((p.todo||p.doneText||'').slice(0,55))}</option>`).join('');}
- let dyn=''; const parent=state.activities.find(x=>x.id===$('#actParent')?.value); const inherited=parent?.todo||''; if(type==='followup'&&inherited) dyn+=`<div class="card"><div class="section-title">Temas que debes tratar en esta visita</div><div class="small">${esc(inherited)}</div><label class="small" style="display:block;margin-top:8px"><input type="checkbox" id="inheritedTreated" ${a?.inheritedTreated?'checked':''}> Marcar como tratado</label></div>`; if(status==='pending') dyn+=`<div class="field"><label>Qué debo tratar en esta visita</label><textarea id="actTodo">${esc(a?.todo||inherited||'')}</textarea></div>`; if(status==='done') dyn+=`<div class="field"><label>Qué he tratado</label><textarea id="actDone">${esc(a?.doneText||'')}</textarea></div><label class="small"><input type="checkbox" id="createNext" ${a?.createNext?'checked':''} onchange="refreshActivityForm()"> Programar siguiente seguimiento</label>`; if(status==='done'&&$('#createNext')?.checked) dyn+=`<div class="field"><label>Qué quiero tratar en el siguiente seguimiento</label><textarea id="nextTodo">${esc(a?.nextTodo||'')}</textarea></div><div class="grid2" style="margin-bottom:0"><div class="field"><label>Fecha seguimiento</label><input type="date" id="nextDate"></div><div class="field"><label>Hora</label><input type="time" id="nextTime" value="09:00"></div></div>`; $('#dynamicFields').innerHTML=dyn;}
+
+  refreshClientPicker();
+  $('#parentWrap').classList.toggle('hidden',type!=='followup');
+
+  if(type==='followup'){
+    if(cid){
+      let parents=state.activities.filter(x=>x.clientId===cid&&x.id!==activityEditId&&canBeParent(x,activityEditId));
+      const cur=a?.parentId;
+      if(cur&&!parents.some(p=>p.id===cur)){
+        const p=state.activities.find(x=>x.id===cur);
+        if(p)parents.unshift(p);
+      }
+      $('#actParent').innerHTML='<option value="">Selecciona visita anterior</option>'+
+        parents.map(p=>`<option value="${p.id}" ${cur===p.id?'selected':''}>${fmtDate(p.date)} ${p.time||''} · ${p.type==='first'?'Primera':'Seguimiento'} · ${esc((p.todo||p.doneText||'').slice(0,55))}</option>`).join('');
+    }else{
+      $('#actParent').innerHTML='<option value="">Primero selecciona un cliente</option>';
+    }
+  }
+
+  let dyn='';
+  const parent=state.activities.find(x=>x.id===$('#actParent')?.value);
+  const inherited=parent?.todo||'';
+  if(type==='followup'&&inherited){
+    dyn+=`<div class="card"><div class="section-title">Temas que debes tratar en esta visita</div><div class="small">${esc(inherited)}</div><label class="small" style="display:block;margin-top:8px"><input type="checkbox" id="inheritedTreated" ${a?.inheritedTreated?'checked':''}> Marcar como tratado</label></div>`;
+  }
+  if(status==='pending'){
+    dyn+=`<div class="field"><label>Qué debo tratar en esta visita</label><textarea id="actTodo">${esc(a?.todo||inherited||'')}</textarea></div>`;
+  }
+  if(status==='done'){
+    dyn+=`<div class="field"><label>Qué he tratado</label><textarea id="actDone">${esc(a?.doneText||'')}</textarea></div><label class="small"><input type="checkbox" id="createNext" ${a?.createNext?'checked':''} onchange="refreshActivityForm()"> Programar siguiente seguimiento</label>`;
+  }
+  if(status==='done'&&$('#createNext')?.checked){
+    dyn+=`<div class="field"><label>Qué quiero tratar en el siguiente seguimiento</label><textarea id="nextTodo">${esc(a?.nextTodo||'')}</textarea></div><div class="grid2" style="margin-bottom:0"><div class="field"><label>Fecha seguimiento</label><input type="date" id="nextDate"></div><div class="field"><label>Hora</label><input type="time" id="nextTime" value="09:00"></div></div>`;
+  }
+  $('#dynamicFields').innerHTML=dyn;
+}
 function saveActivity(){
-  const cid=$('#actClient').value, co=$('#actCompany').value, type=$('#actType').value, status=$('#actStatus').value;
-  if(!co)return toast('Selecciona una empresa.');
+  const cid=$('#actClient').value, type=$('#actType').value, status=$('#actStatus').value;
   if(!cid)return toast('Selecciona un cliente.');
   const selectedClient=client(cid);
+  const co=type==='followup'?(selectedClient?.companyId||''):$('#actCompany').value;
+  if(!co)return toast(type==='followup'?'El cliente no tiene una empresa asociada.':'Selecciona una empresa.');
   if(!selectedClient||selectedClient.companyId!==co)return toast('El cliente debe pertenecer a la empresa seleccionada.');
   const assigneeForValidation=isAdmin()?($('#actAssignee')?.value||''):(currentUser?.id||'');
   if(assigneeForValidation&&!clientsForMember(assigneeForValidation).some(c=>c.id===cid))return toast('Ese cliente no está asignado al comercial seleccionado.');
