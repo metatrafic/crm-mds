@@ -266,6 +266,31 @@ button,input,select,textarea{font:inherit;color:inherit}
 .stat-mini span{display:block;font-family:var(--mono);font-size:7px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-3);margin-top:3px}
 .notification-card{border-left:4px solid var(--accent)}
 
+
+.stat-chevron{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;color:var(--ink-3);opacity:.72}
+.stat-chevron svg{width:10px!important;height:10px!important}
+.productivity-card{border:1px solid var(--line);border-radius:var(--radius-md);padding:16px;background:var(--surface);margin-bottom:10px}
+.productivity-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.productivity-score{font-family:var(--mono);font-size:31px;font-weight:500;line-height:1}
+.productivity-label{font-family:var(--mono);font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-3);margin-top:5px}
+.productivity-ring{--value:0;width:72px;height:72px;border-radius:50%;background:conic-gradient(var(--ink) calc(var(--value)*1%),var(--line-soft) 0);display:grid;place-items:center;position:relative;flex:0 0 auto}
+.productivity-ring:before{content:'';position:absolute;inset:8px;border-radius:50%;background:var(--surface)}
+.productivity-ring span{position:relative;z-index:1;font-family:var(--mono);font-size:12px;font-weight:500}
+.chart-card{border:1px solid var(--line);border-radius:var(--radius-md);padding:15px;background:var(--surface);margin-bottom:10px}
+.chart-title{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-3);margin-bottom:13px}
+.bar-row{display:grid;grid-template-columns:82px 1fr 34px;gap:9px;align-items:center;margin-bottom:10px}
+.bar-label{font-family:var(--mono);font-size:8px;color:var(--ink-2)}
+.bar-track{height:9px;border-radius:999px;background:var(--line-soft);overflow:hidden}
+.bar-fill{height:100%;border-radius:999px;background:var(--ink);min-width:2px}
+.bar-value{font-family:var(--mono);font-size:9px;text-align:right;color:var(--ink-2)}
+.spark-bars{height:100px;display:flex;align-items:flex-end;gap:7px;padding-top:8px}
+.spark-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%}
+.spark-bar{width:100%;max-width:24px;min-height:3px;border-radius:5px 5px 2px 2px;background:var(--ink)}
+.spark-label{font-family:var(--mono);font-size:7px;color:var(--ink-3);text-transform:uppercase}
+.metric-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.metric-box{border:1px solid var(--line);border-radius:11px;padding:11px 8px;text-align:center;background:var(--surface-2)}
+.metric-box b{display:block;font-family:var(--mono);font-size:18px;font-weight:500}
+.metric-box span{display:block;font-family:var(--mono);font-size:7px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-3);margin-top:4px}
 </style>
 </head>
 <body>
@@ -317,7 +342,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 const LS='crm_mds_v5_final';
 const $=s=>document.querySelector(s); const $$=s=>Array.from(document.querySelectorAll(s));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-let activeView='inicio', calDate=new Date(), selectedCompany='all', activityEditId=null;
+let activeView='inicio', calDate=new Date(), selectedCompany='all', activityEditId=null, clientSearchTerm='', clientSearchCaret=0;
 
 const ICONS={
  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9h12v-9"/><path d="M10 19v-5h4v5"/></svg>',
@@ -371,6 +396,11 @@ function visibleClients(){
   return state.clients.filter(c=>(c.assignedUserIds||[]).includes(currentUser?.id)||companyIds.has(c.companyId));
 }
 function canSeeClient(id){return isAdmin()||visibleClients().some(c=>c.id===id)}
+function clientsForMember(userId){
+  if(!userId)return state.clients;
+  const companyIds=new Set(state.companies.filter(c=>(c.assignedUserIds||[]).includes(userId)).map(c=>c.id));
+  return state.clients.filter(c=>(c.assignedUserIds||[]).includes(userId)||companyIds.has(c.companyId));
+}
 function visibleActivities(){
   if(isAdmin())return state.activities;
   return state.activities.filter(a=>a.assignedUserId===currentUser?.id || (!a.assignedUserId&&canSeeClient(a.clientId)));
@@ -495,17 +525,32 @@ function sortDate(a,b){return ((a.date||'')+(a.time||'')).localeCompare((b.date|
 
 /* ---------- Clientes ---------- */
 function renderClientes(){
-  const q=$('#clientSearch')?.value||''; const imp=$('#impFilter')?.value||'';
+  const q=clientSearchTerm; const imp=$('#impFilter')?.value||'';
   let arr=visibleClients().filter(c=>(selectedCompany==='all'||c.companyId===selectedCompany)&&matchesClient(c,q));
   if(imp)arr=arr.filter(c=>(c.importance||'')===imp);
   arr.sort((a,b)=>(company(a.companyId).name.localeCompare(company(b.companyId).name)||((a.order??999999)-(b.order??999999))||String(a.fiscalName).localeCompare(String(b.fiscalName))));
   const filtersOpen=!!$('#clientFilters') && !$('#clientFilters').classList.contains('hidden');
   $('#view-clientes').innerHTML=`<div class="section-title">Clientes</div>
-  <div class="search-bar">${ICONS.search}<input id="clientSearch" placeholder="Buscar por nombre, CIF, contacto, teléfono..." value="${esc(q)}" oninput="renderClientes()"></div>
+  <div class="search-bar">${ICONS.search}<input id="clientSearch" placeholder="Buscar por nombre, CIF, contacto, teléfono..." value="${esc(q)}" autocomplete="off" inputmode="search" oninput="handleClientSearch(this)"></div>
   <button class="filter-toggle" onclick="toggleBlock('clientFilters')">${ICONS.filter}<span>Filtros</span>${imp?`<span class="filter-active-dot"></span>`:''}</button>
   <div id="clientFilters" class="field ${filtersOpen?'':'hidden'}" style="margin-top:2px"><select id="impFilter" onchange="renderClientes()"><option value="">Todas las importancias</option>${['Baja','Media','Alta','Muy alta'].map(x=>`<option ${imp===x?'selected':''}>${x}</option>`).join('')}</select></div>
   <div class="list-count">${arr.length} ${arr.length===1?'cliente':'clientes'}</div>
   <div class="list">${arr.length?arr.map(clientCard).join(''):empty('inbox','No hay clientes','Prueba a cambiar la búsqueda o los filtros, o importa un CSV desde Ajustes.')}</div>`;
+}
+
+function handleClientSearch(input){
+  clientSearchTerm=input.value;
+  clientSearchCaret=input.selectionStart??input.value.length;
+  const scroll=$('#content')?.scrollTop||0;
+  renderClientes();
+  requestAnimationFrame(()=>{
+    const next=$('#clientSearch');
+    if(!next)return;
+    next.focus({preventScroll:true});
+    const pos=Math.min(clientSearchCaret,next.value.length);
+    try{next.setSelectionRange(pos,pos)}catch(e){}
+    if($('#content'))$('#content').scrollTop=scroll;
+  });
 }
 function clientCard(c){
   const co=company(c.companyId); const lc=lastContact(c.id);
@@ -627,13 +672,33 @@ function bindActivityForm(){
   refreshClientPicker(); refreshActivityForm();
 }
 function refreshClientPicker(){
-  const co=$('#actCompany')?.value||'', q=$('#clientQuery')?.value||'', pick=$('#clientPick'); if(!pick)return;
-  if(!co){pick.innerHTML='<div class="pick-item">Selecciona primero una empresa</div>';return;}
-  const arr=state.clients.filter(c=>c.companyId===co&&matchesClient(c,q)).sort((a,b)=>(a.order??999999)-(b.order??999999));
-  pick.innerHTML=arr.length?arr.slice(0,80).map(c=>`<div class="pick-item" onclick="selectClientForActivity('${c.id}',true)">${esc(c.fiscalName||c.commercialName)}<div class="card-sub">${esc(c.nif||'')}</div></div>`).join(''):'<div class="pick-item">Esta empresa no tiene clientes coincidentes</div>';
+  const co=$('#actCompany')?.value||'';
+  const q=$('#clientQuery')?.value||'';
+  const assignee=isAdmin()?($('#actAssignee')?.value||''):(currentUser?.id||'');
+  const source=isAdmin()?clientsForMember(assignee):visibleClients();
+  const arr=source.filter(c=>(!co||c.companyId===co)&&matchesClient(c,q)).sort((a,b)=>(a.order??999999)-(b.order??999999));
+  const selectedId=$('#actClient')?.value||'';
+  if(selectedId&&!arr.some(c=>c.id===selectedId)){
+    $('#actClient').value='';
+    if($('#clientQuery'))$('#clientQuery').value='';
+  }
+  $('#clientPick').innerHTML=arr.length
+    ?arr.slice(0,80).map(c=>`<div class="pick-item" onclick="selectClientForActivity('${c.id}',true)">${esc(c.fiscalName||c.commercialName)}<div class="card-sub">${esc(c.nif||'')} · ${esc(company(c.companyId).name)}</div></div>`).join('')
+    :'<div class="pick-item">No hay clientes asignados para esta selección</div>';
 }
 function selectClientForActivity(id, warn=true){const c=client(id); if(!c)return; $('#actClient').value=id; $('#actCompany').value=c.companyId; $('#clientQuery').value=c.fiscalName||c.commercialName||''; $('#actPlace').value=$('#actPlace').value||c.address||''; $('#mapsLink').innerHTML=c.address?`<a target="_blank" class="small" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(c.address)}">Abrir en Google Maps</a>`:''; if(c.alertMsg&&warn)showNotice('Aviso de este cliente',c.alertMsg); refreshClientPicker(); refreshActivityForm();}
-function refreshActivityForm(){const cid=$('#actClient')?.value; const a=activityEditId?state.activities.find(x=>x.id===activityEditId):null; if(cid&&!a){$('#actType').value=hasFirst(cid)?'followup':'first'} const type=$('#actType')?.value; const status=$('#actStatus')?.value; $('#parentWrap').classList.toggle('hidden',type!=='followup'); if(type==='followup'&&cid){let parents=state.activities.filter(x=>x.clientId===cid&&x.id!==activityEditId&&canBeParent(x,activityEditId)); const cur=a?.parentId; if(cur&&!parents.some(p=>p.id===cur)){const p=state.activities.find(x=>x.id===cur);if(p)parents.unshift(p)} $('#actParent').innerHTML='<option value="">Selecciona visita anterior</option>'+parents.map(p=>`<option value="${p.id}" ${cur===p.id?'selected':''}>${fmtDate(p.date)} ${p.time||''} · ${p.type==='first'?'Primera':'Seguimiento'} · ${esc((p.todo||p.doneText||'').slice(0,55))}</option>`).join('');}
+function refreshActivityForm(){
+  const currentClientId=$('#actClient')?.value||'';
+  const selectedCompanyId=$('#actCompany')?.value||'';
+  const selectedAssignee=isAdmin()?($('#actAssignee')?.value||''):(currentUser?.id||'');
+  if(currentClientId){
+    const allowed=(isAdmin()?clientsForMember(selectedAssignee):visibleClients()).some(c=>c.id===currentClientId&&(!selectedCompanyId||c.companyId===selectedCompanyId));
+    if(!allowed){
+      $('#actClient').value='';
+      $('#clientQuery').value='';
+    }
+  }
+  refreshClientPicker();const cid=$('#actClient')?.value; const a=activityEditId?state.activities.find(x=>x.id===activityEditId):null; if(cid&&!a){$('#actType').value=hasFirst(cid)?'followup':'first'} const type=$('#actType')?.value; const status=$('#actStatus')?.value; $('#parentWrap').classList.toggle('hidden',type!=='followup'); if(type==='followup'&&cid){let parents=state.activities.filter(x=>x.clientId===cid&&x.id!==activityEditId&&canBeParent(x,activityEditId)); const cur=a?.parentId; if(cur&&!parents.some(p=>p.id===cur)){const p=state.activities.find(x=>x.id===cur);if(p)parents.unshift(p)} $('#actParent').innerHTML='<option value="">Selecciona visita anterior</option>'+parents.map(p=>`<option value="${p.id}" ${cur===p.id?'selected':''}>${fmtDate(p.date)} ${p.time||''} · ${p.type==='first'?'Primera':'Seguimiento'} · ${esc((p.todo||p.doneText||'').slice(0,55))}</option>`).join('');}
  let dyn=''; const parent=state.activities.find(x=>x.id===$('#actParent')?.value); const inherited=parent?.todo||''; if(type==='followup'&&inherited) dyn+=`<div class="card"><div class="section-title">Temas que debes tratar en esta visita</div><div class="small">${esc(inherited)}</div><label class="small" style="display:block;margin-top:8px"><input type="checkbox" id="inheritedTreated" ${a?.inheritedTreated?'checked':''}> Marcar como tratado</label></div>`; if(status==='pending') dyn+=`<div class="field"><label>Qué debo tratar en esta visita</label><textarea id="actTodo">${esc(a?.todo||inherited||'')}</textarea></div>`; if(status==='done') dyn+=`<div class="field"><label>Qué he tratado</label><textarea id="actDone">${esc(a?.doneText||'')}</textarea></div><label class="small"><input type="checkbox" id="createNext" ${a?.createNext?'checked':''} onchange="refreshActivityForm()"> Programar siguiente seguimiento</label>`; if(status==='done'&&$('#createNext')?.checked) dyn+=`<div class="field"><label>Qué quiero tratar en el siguiente seguimiento</label><textarea id="nextTodo">${esc(a?.nextTodo||'')}</textarea></div><div class="grid2" style="margin-bottom:0"><div class="field"><label>Fecha seguimiento</label><input type="date" id="nextDate"></div><div class="field"><label>Hora</label><input type="time" id="nextTime" value="09:00"></div></div>`; $('#dynamicFields').innerHTML=dyn;}
 function saveActivity(){
   const cid=$('#actClient').value, co=$('#actCompany').value, type=$('#actType').value, status=$('#actStatus').value;
@@ -641,6 +706,8 @@ function saveActivity(){
   if(!cid)return toast('Selecciona un cliente.');
   const selectedClient=client(cid);
   if(!selectedClient||selectedClient.companyId!==co)return toast('El cliente debe pertenecer a la empresa seleccionada.');
+  const assigneeForValidation=isAdmin()?($('#actAssignee')?.value||''):(currentUser?.id||'');
+  if(assigneeForValidation&&!clientsForMember(assigneeForValidation).some(c=>c.id===cid))return toast('Ese cliente no está asignado al comercial seleccionado.');
   if(type==='first'&&hasFirst(cid)&&!(activityEditId&&state.activities.find(a=>a.id===activityEditId)?.type==='first'))return toast('Este cliente ya tiene una primera visita. Debes crear un seguimiento.');
   if(type==='followup'&&!$('#actParent').value)return toast('Un seguimiento debe estar vinculado a una visita anterior.');
   if(type==='followup'&&state.activities.some(a=>a.id!==activityEditId&&a.parentId===$('#actParent').value))return toast('Esa visita ya tiene seguimiento. Elige otra visita anterior.');
@@ -981,11 +1048,16 @@ function commercialStats(member){
   const monthPrefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const monthDone=done.filter(a=>(a.date||'').startsWith(monthPrefix));
   const completion=acts.length?Math.round(done.length*100/acts.length):0;
-  return {
-    acts:acts.length,done:done.length,pending:pending.length,cancelled:cancelled.length,
-    overdue:overdue.length,today:todayActs.length,first:first.length,followup:followup.length,
-    clients:clients.size,companies:companies.size,monthDone:monthDone.length,completion,all:acts
-  };
+  const punctuality=(done.length+overdue.length)?Math.max(0,Math.round(done.length*100/(done.length+overdue.length))):100;
+  const cancellationRate=acts.length?Math.round(cancelled.length*100/acts.length):0;
+  const productivity=Math.max(0,Math.min(100,Math.round(completion*.55+punctuality*.30+Math.max(0,100-cancellationRate)*.15)));
+  const last6=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const prefix=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    last6.push({label:d.toLocaleDateString('es-ES',{month:'short'}).replace('.',''),value:done.filter(a=>(a.date||'').startsWith(prefix)).length});
+  }
+  return {acts:acts.length,done:done.length,pending:pending.length,cancelled:cancelled.length,overdue:overdue.length,today:todayActs.length,first:first.length,followup:followup.length,clients:clients.size,companies:companies.size,monthDone:monthDone.length,completion,punctuality,cancellationRate,productivity,last6,all:acts};
 }
 function openCommercialStats(){
   if(!isAdmin())return;
@@ -993,9 +1065,9 @@ function openCommercialStats(){
   const cards=commercials.map(m=>{
     const s=commercialStats(m);
     return `<div class="card commercial-stat-card" onclick="openCommercialDetail('${m.user_id}')">
-      <div class="row"><div><div class="card-title">${esc(m.display_name||m.email)}</div><div class="card-sub">${esc(m.email||'')}</div></div>${ICONS.chevron}</div>
+      <div class="row"><div><div class="card-title">${esc(m.display_name||m.email)}</div><div class="card-sub">${esc(m.email||'')}</div></div><span class="stat-chevron">${ICONS.chevron}</span></div>
       <div class="stat-mini-grid">
-        <div class="stat-mini"><b>${s.pending}</b><span>Pendientes</span></div>
+        <div class="stat-mini"><b>${s.productivity}</b><span>Productividad</span></div>
         <div class="stat-mini"><b>${s.done}</b><span>Realizadas</span></div>
         <div class="stat-mini"><b>${s.completion}%</b><span>Cumplimiento</span></div>
       </div>
@@ -1015,28 +1087,42 @@ function openCommercialDetail(userId){
   const recent=s.all.slice().sort(sortDateDesc).slice(0,12);
   const assignedCompanies=state.companies.filter(c=>(c.assignedUserIds||[]).includes(userId));
   const directClients=state.clients.filter(c=>(c.assignedUserIds||[]).includes(userId));
-  openSheet('Detalle comercial',m.display_name||m.email,`
-    <div class="hero"><div class="hero-label">Porcentaje de visitas realizadas</div><div class="hero-num">${s.completion}%</div><div class="progress-track"><div class="progress-fill" style="width:${s.completion}%"></div></div></div>
+  const maxMonth=Math.max(1,...s.last6.map(x=>x.value));
+  const monthBars=s.last6.map(x=>`<div class="spark-col"><div class="spark-bar" style="height:${Math.max(4,Math.round(x.value/maxMonth*78))}px"></div><div class="spark-label">${esc(x.label)}</div></div>`).join('');
+  const statusTotal=Math.max(1,s.acts);
+  openSheet('Productividad comercial',m.display_name||m.email,`
+    <div class="productivity-card">
+      <div class="productivity-head">
+        <div><div class="productivity-score">${s.productivity}</div><div class="productivity-label">Índice de productividad / 100</div></div>
+        <div class="productivity-ring" style="--value:${s.productivity}"><span>${s.productivity}%</span></div>
+      </div>
+      <div class="small" style="margin-top:12px">Combina visitas realizadas, puntualidad y nivel de cancelaciones.</div>
+    </div>
+    <div class="metric-strip">
+      <div class="metric-box"><b>${s.completion}%</b><span>Cumplimiento</span></div>
+      <div class="metric-box"><b>${s.punctuality}%</b><span>Puntualidad</span></div>
+      <div class="metric-box"><b>${s.monthDone}</b><span>Hechas este mes</span></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Distribución de visitas</div>
+      <div class="bar-row"><div class="bar-label">Realizadas</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(s.done/statusTotal*100)}%"></div></div><div class="bar-value">${s.done}</div></div>
+      <div class="bar-row"><div class="bar-label">Pendientes</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(s.pending/statusTotal*100)}%"></div></div><div class="bar-value">${s.pending}</div></div>
+      <div class="bar-row"><div class="bar-label">Canceladas</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(s.cancelled/statusTotal*100)}%"></div></div><div class="bar-value">${s.cancelled}</div></div>
+      <div class="bar-row"><div class="bar-label">Atrasadas</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(s.overdue/statusTotal*100)}%"></div></div><div class="bar-value">${s.overdue}</div></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Visitas realizadas · últimos 6 meses</div>
+      <div class="spark-bars">${monthBars}</div>
+    </div>
     <div class="grid2">
       <div class="stat"><b>${s.acts}</b><span>Total asignadas</span></div>
-      <div class="stat"><b>${s.monthDone}</b><span>Realizadas este mes</span></div>
-      <div class="stat"><b>${s.pending}</b><span>Pendientes</span></div>
-      <div class="stat"><b>${s.done}</b><span>Realizadas</span></div>
-      <div class="stat"><b>${s.cancelled}</b><span>Canceladas</span></div>
-      <div class="stat"><b>${s.overdue}</b><span>Atrasadas</span></div>
       <div class="stat"><b>${s.today}</b><span>Programadas hoy</span></div>
       <div class="stat"><b>${s.clients}</b><span>Clientes atendidos</span></div>
-      <div class="stat"><b>${s.companies}</b><span>Empresas con visitas</span></div>
+      <div class="stat"><b>${s.companies}</b><span>Empresas visitadas</span></div>
       <div class="stat"><b>${s.first}</b><span>Primeras visitas</span></div>
       <div class="stat"><b>${s.followup}</b><span>Seguimientos</span></div>
       <div class="stat"><b>${assignedCompanies.length}</b><span>Empresas asignadas</span></div>
-    </div>
-    <div class="card">
-      <div class="info-grid">
-        <div class="info-row"><span>Correo</span><b>${esc(m.email||'—')}</b></div>
-        <div class="info-row"><span>Clientes directos</span><b>${directClients.length}</b></div>
-        <div class="info-row"><span>Visitas vencidas</span><b>${s.overdue}</b></div>
-      </div>
+      <div class="stat"><b>${directClients.length}</b><span>Clientes directos</span></div>
     </div>
     <div class="section-title">Últimas visitas</div>
     <div class="list">${cards(recent,true)}</div>
