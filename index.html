@@ -291,6 +291,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 .metric-box{border:1px solid var(--line);border-radius:11px;padding:11px 8px;text-align:center;background:var(--surface-2)}
 .metric-box b{display:block;font-family:var(--mono);font-size:18px;font-weight:500}
 .metric-box span{display:block;font-family:var(--mono);font-size:7px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink-3);margin-top:4px}
+
+.followup-cta{margin-top:10px}
+.followup-note{font-family:var(--mono);font-size:8px;line-height:1.5;color:var(--ink-3);margin-top:6px}
 </style>
 </head>
 <body>
@@ -768,6 +771,7 @@ function openActivityDetail(id){
       <button class="status-action done ${a.status==='done'?'active':''}" onclick="updateActivityStatus('${a.id}','done')">Realizada</button>
       <button class="status-action cancelled ${a.status==='cancelled'?'active':''}" onclick="updateActivityStatus('${a.id}','cancelled')">Cancelada</button>
     </div>
+    ${a.status==='done'?`<div class="followup-cta"><button class="btn full primary" onclick="openFollowupFromActivity('${a.id}')">${ICONS.plus}<span>Añadir seguimiento</span></button><div class="followup-note">El seguimiento quedará vinculado a esta visita y al mismo cliente.</div></div>`:''}
   </div>
   <div class="actions">
     <button class="btn" onclick="openActivity('${a.id}')">${ICONS.edit}<span>Editar</span></button>
@@ -921,10 +925,54 @@ function download(name,content,type){const blob=new Blob([content],{type}); cons
 function canModifyActivity(a){
   return !!a&&(isAdmin()||a.assignedUserId===currentUser?.id||(!a.assignedUserId&&canSeeClient(a.clientId)));
 }
+
+function openFollowupFromActivity(parentId){
+  const parent=state.activities.find(a=>a.id===parentId);
+  if(!parent)return;
+  const existing=state.activities.find(a=>a.parentId===parentId);
+  if(existing){
+    openActivity(existing.id);
+    toast('Esta visita ya tiene un seguimiento vinculado.');
+    return;
+  }
+  closeSheet();
+  openActivity(null,parent.clientId);
+  setTimeout(()=>{
+    if($('#actCompany'))$('#actCompany').value=parent.companyId||'';
+    if($('#actClient'))$('#actClient').value=parent.clientId||'';
+    if($('#clientQuery'))$('#clientQuery').value=clientName(parent.clientId);
+    if($('#actType'))$('#actType').value='followup';
+    refreshClientPicker();
+    refreshActivityForm();
+    setTimeout(()=>{
+      if($('#actParent'))$('#actParent').value=parentId;
+      if($('#actAssignee')&&parent.assignedUserId)$('#actAssignee').value=parent.assignedUserId;
+      if($('#actMode'))$('#actMode').value=parent.mode||'Presencial';
+      if($('#actPlace'))$('#actPlace').value=parent.place||client(parent.clientId)?.address||'';
+      if($('#actTodo')&&!$('#actTodo').value)$('#actTodo').value=parent.todo||'';
+      refreshActivityForm();
+    },0);
+  },0);
+}
+async function offerFollowupAfterDone(id){
+  const parent=state.activities.find(a=>a.id===id);
+  if(!parent)return;
+  if(state.activities.some(a=>a.parentId===id)){
+    toast('La visita ya tiene seguimiento.');
+    return;
+  }
+  const create=await showConfirm(
+    'Programar seguimiento',
+    `La visita de ${clientName(parent.clientId)} se ha marcado como realizada. ¿Quieres programar ahora el siguiente seguimiento?`
+  );
+  if(create)openFollowupFromActivity(id);
+}
+
 function updateActivityStatus(id,status){
   const a=state.activities.find(x=>x.id===id);
   if(!canModifyActivity(a))return toast('No tienes permiso para modificar esta visita.');
   if(!['pending','done','cancelled'].includes(status))return;
+  const becameDone=a.status!=='done'&&status==='done';
   a.status=status;
   a.updatedAt=new Date().toISOString();
   a.updatedBy=currentUser?.id||'';
@@ -932,6 +980,7 @@ function updateActivityStatus(id,status){
   render();
   openActivityDetail(id);
   toast(`Visita marcada como ${status==='done'?'realizada':status==='cancelled'?'cancelada':'pendiente'}.`);
+  if(becameDone)setTimeout(()=>offerFollowupAfterDone(id),350);
 }
 function assignmentSeenKey(){
   return `crm_mds_seen_assignments_${currentUser?.id||'anon'}`;
